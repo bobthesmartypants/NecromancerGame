@@ -1063,6 +1063,7 @@ public class NavigationMesh : MonoBehaviour
                 optimalHeading = new Vector2(xVel, zVel);
                 optimalHeading = Mathf.Clamp(optimalHeading.magnitude, 0.0f, 10.0f) * optimalHeading.normalized;
                 //float.IsNaN(value);
+                Debug.Log("Fail");
             }
 
             agentA.MoveAgent(new Vector3(optimalHeading.x, 0.0f, optimalHeading.y));
@@ -1169,7 +1170,7 @@ public class NavigationMesh : MonoBehaviour
             n = vx_c.magnitude < Mathf.Epsilon ? -vCenter.normalized : vx_c.normalized;
         }
 
-        agentB.ORCAHalfPlanes.Add(new HalfPlane(-n, vOptB - u, (vCenter - vCenterScaled).magnitude));
+        agentB.ORCAHalfPlanes.Add(new HalfPlane(-n, vOptB - u, 0.01f * (vCenter - vCenterScaled).magnitude));
     }
     
 }
