@@ -235,17 +235,20 @@ public class NavMeshTriangle : INode
 {
     public List<int> neighbors;
     public List<int> weights;
+    public Vector3[] verts;
+    public Vector3 centroid;
 
     public int navMeshIdx;
     public float area;
     public List<BoundaryEdge> boundaryEdges;
-    public List<int> navAgents;
 
     public NavMeshTriangle()
     {
         neighbors = new List<int>();
         weights = new List<int>();
         boundaryEdges = new List<BoundaryEdge>();
+        verts = new Vector3[3];
+        centroid = Vector3.zero;
     }
 
     public void AddNeighbor(int neighbor, int weight)
@@ -479,6 +482,8 @@ public class NavigationMesh : MonoBehaviour
 
             int tri = i / 3;
             navMeshTris[tri].navMeshIdx = tri;
+            navMeshTris[tri].centroid = (mesh.vertices[vi1] + mesh.vertices[vi2] + mesh.vertices[vi3]) / 3;
+            navMeshTris[tri].verts = new Vector3[] { mesh.vertices[vi1], mesh.vertices[vi2], mesh.vertices[vi3] };
             Vector2 p0 = new Vector2(mesh.vertices[vi1].x, mesh.vertices[vi1].z);
             Vector2 p1 = new Vector2(mesh.vertices[vi2].x, mesh.vertices[vi2].z);
             Vector2 p2 = new Vector2(mesh.vertices[vi3].x, mesh.vertices[vi3].z);
@@ -907,43 +912,35 @@ public class NavigationMesh : MonoBehaviour
 
     void LateUpdate()
     {
-        //TODO: Iterate through targets and implement Dijkstra's algorithm for shortest path from each
-        //to every triangle
+        int targetTriIdx = NavMeshTriFromPos(playerAgent.transform.position);
+        if (targetTriIdx >= 0)
+        {
+            playerAgent.navMeshTriIdx = targetTriIdx;
+        }
+
+
         for (int i = 0; i < agents.Length; i++)
         {
-            NavMeshTriangle curTri = navMeshGraph.BreadthFirstSearch(agents[i].navMeshTriIdx,
-                (node) =>
-                {
-                    Vector2 p = new Vector2(agents[i].transform.position.x, agents[i].transform.position.z);
-
-                    int vi1 = mesh.triangles[3 * node.navMeshIdx];
-                    int vi2 = mesh.triangles[3 * node.navMeshIdx + 1];
-                    int vi3 = mesh.triangles[3 * node.navMeshIdx + 2];
-                    Vector2 p0 = new Vector2(mesh.vertices[vi1].x, mesh.vertices[vi1].z);
-                    Vector2 p1 = new Vector2(mesh.vertices[vi2].x, mesh.vertices[vi2].z);
-                    Vector2 p2 = new Vector2(mesh.vertices[vi3].x, mesh.vertices[vi3].z);
-
-                    float s = (1.0f / (2 * node.area)) * (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y);
-                    float t = (1.0f / (2 * node.area)) * (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y);
-                    return 0 <= s && s <= 1.0f && 0 <= t && t <= 1.0f && s + t <= 1.0f;
-                });
-
-            if (curTri != null)
+            int agentTriIdx = NavMeshTriFromPos(agents[i].transform.position);
+            if(agentTriIdx >= 0)
             {
-                agents[i].navMeshTriIdx = curTri.navMeshIdx;
+                agents[i].navMeshTriIdx = agentTriIdx;
+                int[] backPointers = navMeshGraph.DijkstrasAlgorithm(playerAgent.navMeshTriIdx);
+                List<int> triPath = navMeshGraph.TraceBackPointers(backPointers, agents[i].navMeshTriIdx);
+                Vector3 agentStartPos = new Vector3(agents[i].transform.position.x, 0.0f, agents[i].transform.position.z);
+                List<Vector3> shortestPathPoints = StringPullingAlgorithm(triPath, agentStartPos, agents[i].target.position, agents[i].radius);
+                agents[i].pathPoints = shortestPathPoints;
+                agents[i].ORCAHalfPlanes = new List<HalfPlane>();
             }
             else
             {
-                agents[i].navMeshTriIdx = -1;
+                //AI agent is out of bounds. Make it head towards last navigation mesh triangle
+                agents[i].pathPoints = new List<Vector3>() { navMeshGraph.nodes[agents[i].navMeshTriIdx].centroid };
+                agents[i].ORCAHalfPlanes = new List<HalfPlane>();
             }
+            
+            
 
-            int endTri = NavMeshTriFromPos(agents[i].target.position);
-            int[] backPointers = navMeshGraph.DijkstrasAlgorithm(endTri);
-            List<int> triPath = navMeshGraph.TraceBackPointers(backPointers, agents[i].navMeshTriIdx);
-            Vector3 agentStartPos = new Vector3(agents[i].transform.position.x, 0.0f, agents[i].transform.position.z);
-            List<Vector3> shortestPathPoints = StringPullingAlgorithm(triPath, agentStartPos, agents[i].target.position, agents[i].radius);
-            agents[i].pathPoints = shortestPathPoints;
-            agents[i].ORCAHalfPlanes = new List<HalfPlane>();
         }
 
         for (int i = 0; i < agents.Length; i++)
