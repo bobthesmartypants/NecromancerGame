@@ -28,7 +28,7 @@ public class Fire : Magic
             nextAttackTime = Time.time + coolDown;
             Transform objectHit = hit.transform;
 
-            //Play shooting fire animation
+            //Play shooting fire animation. Maybe use coroutine
 
             //Instantiate fireball
             GameObject fireball = (GameObject)Instantiate(Resources.Load("Prefabs/fireball", typeof(GameObject)));

@@ -322,19 +322,8 @@ public class Graph<T> where T : INode
     {
         List<int> path = new List<int>();
         int curNode = end;
-        //Vector3 lastc = new Vector3(0, -100, 0);
         while (curNode != -1)
         {
-            //int vi1 = mesh.triangles[3 * curNode];
-            //int vi2 = mesh.triangles[3 * curNode + 1];
-            //int vi3 = mesh.triangles[3 * curNode + 2];
-            //Vector3 v1 = mesh.vertices[vi1];
-            //Vector3 v2 = mesh.vertices[vi2];
-            //Vector3 v3 = mesh.vertices[vi3];
-            //Vector3 c = (v1 + v2 + v3) / 3;
-
-            //Debug.DrawLine(lastc, c, Color.red);
-            //lastc = c;
             path.Add(curNode);
             curNode = backPointers[curNode];
 
@@ -430,6 +419,7 @@ public class Graph<T> where T : INode
 
 public class NavigationMesh : MonoBehaviour
 {
+    public PlayerMovementController playerAgent;
     public NavAgent[] agents = new NavAgent[4];
     const float LARGE_FLOAT = 10000.0f;
     const float MIN_X_VEL = -20.0f;
@@ -437,7 +427,6 @@ public class NavigationMesh : MonoBehaviour
     const float MIN_Y_VEL = -20.0f;
     const float MAX_Y_VEL = 20.0f;
     const float tau = 3.0f;
-    //const float tau = 2.0f;
 
     public Graph<NavMeshTriangle> navMeshGraph;
     HashSet<int> boundaryVerts = new HashSet<int>();
@@ -627,7 +616,7 @@ public class NavigationMesh : MonoBehaviour
     {
         if (triPath.Count == 1)
         {
-            return new List<Vector3> { startPos, targetPos };
+            return new List<Vector3> { targetPos };
         }
 
         Vector2Int triPair = triPath[0] < triPath[1] ? new Vector2Int(triPath[0], triPath[1]) : new Vector2Int(triPath[1], triPath[0]);
@@ -727,15 +716,12 @@ public class NavigationMesh : MonoBehaviour
         //Run Simple Stupid Funnel Algorithm.
         List<Vector3> breadCrumbs = new List<Vector3> { startPos };
 
-
-        //-----------------------------------------
         int n = 6;
         float R = agentRadius / Mathf.Cos(Mathf.PI / n);
 
         Vector3 minkowskiFunnelL = portalVerts[edgePortals[0][0]] - breadCrumbs[breadCrumbs.Count - 1];
         Vector3 minkowskiFunnelR = portalVerts[edgePortals[0][1]] - breadCrumbs[breadCrumbs.Count - 1];
 
-        Debug.Log(mappedBoundaryVerts.Count);
         if (mappedBoundaryVerts.Contains(edgePortals[0][0]))
         {
             Vector3[] funnelLTangents = CircleTangentPoints(portalVerts[edgePortals[0][0]], agentRadius, breadCrumbs[breadCrumbs.Count - 1]);
@@ -763,7 +749,6 @@ public class NavigationMesh : MonoBehaviour
                 minkowskiFunnelR = (R * (funnelRTangents[1] - portalVerts[edgePortals[0][1]]).normalized + portalVerts[edgePortals[0][1]]) - breadCrumbs[breadCrumbs.Count - 1];
             }
         }
-        //-----------------------------------------
 
 
         int epL = 1;
@@ -915,12 +900,12 @@ public class NavigationMesh : MonoBehaviour
             Debug.DrawLine(breadCrumbs[i - 1], breadCrumbs[i], Color.green);
         }
 
+        breadCrumbs.RemoveAt(0);
         return breadCrumbs;
     }
 
 
-    // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         //TODO: Iterate through targets and implement Dijkstra's algorithm for shortest path from each
         //to every triangle
@@ -958,11 +943,235 @@ public class NavigationMesh : MonoBehaviour
             Vector3 agentStartPos = new Vector3(agents[i].transform.position.x, 0.0f, agents[i].transform.position.z);
             List<Vector3> shortestPathPoints = StringPullingAlgorithm(triPath, agentStartPos, agents[i].target.position, agents[i].radius);
             agents[i].pathPoints = shortestPathPoints;
+            agents[i].ORCAHalfPlanes = new List<HalfPlane>();
+        }
 
+        for (int i = 0; i < agents.Length; i++)
+        {
+            Player2AgentORCA(ref playerAgent, ref agents[i]);
+            for (int j = i + 1; j < agents.Length; j++)
+            {
+                Agent2AgentORCA(ref agents[i], ref agents[j]);
+            }
+        }
+
+
+        foreach (NavAgent agentA in agents)
+        {
+            bool noValidVelocity = false;
+            Vector2 desiredVelocity = new Vector2(agentA.desiredHeading.x, agentA.desiredHeading.z);
+            Vector2 optimalHeading = desiredVelocity;
+
+            List<HalfPlane> bounds = new List<HalfPlane>();
+            bounds.Add(new HalfPlane(Vector2.down, new Vector2(0, 10), 1.0f));
+            bounds.Add(new HalfPlane(Vector2.up, new Vector2(0, -10), 1.0f));
+            bounds.Add(new HalfPlane(Vector2.left, new Vector2(10, 0), 1.0f));
+            bounds.Add(new HalfPlane(Vector2.right, new Vector2(-10, 0), 1.0f));
+
+            foreach (HalfPlane halfPlane in agentA.ORCAHalfPlanes)
+            {
+                if(agentA.id == "A")
+                {
+                    TraceHalfPlane(agentA, halfPlane);
+                }
+                
+
+                if (Vector2.Dot(optimalHeading - halfPlane.p, halfPlane.n) < 0)
+                {
+                    Vector2 dir = Vector2.Perpendicular(halfPlane.n);
+                    LineSegment optimalInterval = new LineSegment(halfPlane.p - LARGE_FLOAT * dir, halfPlane.p + LARGE_FLOAT * dir);
+                    foreach (HalfPlane bound in bounds)
+                    {
+                        float D = halfPlane.n.x * bound.n.y - halfPlane.n.y * bound.n.x;
+                        float Dx = Vector2.Dot(halfPlane.n, halfPlane.p) * bound.n.y - halfPlane.n.y * Vector2.Dot(bound.n, bound.p);
+                        float Dy = halfPlane.n.x * Vector2.Dot(bound.n, bound.p) - Vector2.Dot(halfPlane.n, halfPlane.p) * bound.n.x;
+                        Vector2 intersection = new Vector2(Dx / D, Dy / D);
+
+                        if (Vector2.Dot(bound.n, dir) > 0)
+                        {
+                            if (Vector2.Dot(intersection - optimalInterval.p1, dir) > 0)
+                            {
+                                optimalInterval.p1 = intersection;
+                            }
+                        }
+                        else
+                        {
+                            if (Vector2.Dot(intersection - optimalInterval.p2, -dir) > 0)
+                            {
+                                optimalInterval.p2 = intersection;
+                            }
+                        }
+                    }
+
+                    if (Vector2.Dot(optimalInterval.Dir, dir) > 0)
+                    {
+                        optimalHeading = Vector2.Distance(optimalInterval.p1, desiredVelocity) < Vector2.Distance(optimalInterval.p2, desiredVelocity) ? optimalInterval.p1 : optimalInterval.p2;
+
+                        //Test perpendicular distance from desiredVelocity to optimalInterval
+                        Vector2 n = Vector2.Perpendicular(optimalInterval.Dir);
+                        float D = optimalInterval.Dir.x * n.y - optimalInterval.Dir.y * n.x;
+                        float Dx = Vector2.Dot(optimalInterval.Dir, desiredVelocity) * n.y - optimalInterval.Dir.y * Vector2.Dot(n, optimalInterval.p1);
+                        float Dy = optimalInterval.Dir.x * Vector2.Dot(n, optimalInterval.p1) - Vector2.Dot(optimalInterval.Dir, desiredVelocity) * n.x;
+                        Vector2 potentialHeading = new Vector2(Dx / D, Dy / D);
+                        if (Vector2.Distance(potentialHeading, desiredVelocity) < Vector2.Distance(optimalHeading, desiredVelocity) &&
+                            Vector2.Dot(optimalInterval.p2 - potentialHeading, optimalInterval.p1 - potentialHeading) < 0)
+                        {
+                            optimalHeading = potentialHeading;
+                        }
+                    }
+                    else
+                    {
+                        noValidVelocity = true;
+                        break;
+                    }
+                }
+                bounds.Add(halfPlane);
+            }
+
+
+
+            if (noValidVelocity)
+            {
+                //There is no velocity that avoids obstacles. Find velocity that satisfies the least squares
+                //distances from each half plane
+
+                float[,] AT_A = new float[2, 2] { {0.0f, 0.0f },
+                                              {0.0f, 0.0f } };
+                float[] AT_b = new float[2] { 0.0f, 0.0f };
+
+                foreach (HalfPlane halfPlane in agentA.ORCAHalfPlanes)
+                {
+                    Vector2 Ai = halfPlane.n / halfPlane.weight;
+                    float bi = Vector2.Dot(halfPlane.n, halfPlane.p) / halfPlane.weight;
+                    AT_A[0, 0] += Ai[0] * Ai[0];
+                    AT_A[1, 0] += Ai[1] * Ai[0];
+                    AT_A[0, 1] += Ai[0] * Ai[1];
+                    AT_A[1, 1] += Ai[1] * Ai[1];
+                    AT_b[0] += Ai[0] * bi;
+                    AT_b[1] += Ai[1] * bi;
+                }
+
+                float[,] AT_A_inv = new float[2, 2];
+                float det = AT_A[0, 0] * AT_A[1, 1] - AT_A[1, 0] * AT_A[0, 1];
+                AT_A_inv[0, 0] = AT_A[1, 1] / det;
+                AT_A_inv[1, 0] = -AT_A[1, 0] / det;
+                AT_A_inv[0, 1] = -AT_A[0, 1] / det;
+                AT_A_inv[1, 1] = AT_A[0, 0] / det;
+
+                float xVel = AT_A_inv[0, 0] * AT_b[0] + AT_A_inv[0, 1] * AT_b[1];
+                float zVel = AT_A_inv[1, 0] * AT_b[0] + AT_A_inv[1, 1] * AT_b[1];
+                optimalHeading = new Vector2(xVel, zVel);
+                optimalHeading = Mathf.Clamp(optimalHeading.magnitude, 0.0f, 10.0f) * optimalHeading.normalized;
+                //float.IsNaN(value);
+            }
+
+            agentA.MoveAgent(new Vector3(optimalHeading.x, 0.0f, optimalHeading.y));
         }
 
 
     }
+
+    void TraceHalfPlane(NavAgent agent, HalfPlane halfPlane)
+    {
+        //Debug.Log(halfPlane.n);
+        Vector3 start = new Vector3(agent.transform.position.x, 1.0f, agent.transform.position.z) + new Vector3(halfPlane.p.x, 0.0f, halfPlane.p.y);
+        Vector2 lineDir = Vector2.Perpendicular(halfPlane.n);
+        Debug.DrawLine(start, start + 30.0f * new Vector3(lineDir.x, 0, lineDir.y), Color.yellow);
+        Debug.DrawLine(start, start - 30.0f * new Vector3(lineDir.x, 0, lineDir.y), Color.yellow);
+        Debug.DrawLine(start, start + 5.0f * new Vector3(halfPlane.n.x, 0, halfPlane.n.y), Color.cyan);
+
+    }
+
+    //Create Optimal reciprocal Collision Avoidance half plane
+    void Agent2AgentORCA(ref NavAgent agentA, ref NavAgent agentB)
+    {
+        Vector3 dp = agentB.transform.position - agentA.transform.position;
+        Vector2 vCenter = new Vector2(dp.x, dp.z);
+        Vector2 vCenterScaled = new Vector2(dp.x, dp.z) / tau;
+        float r = agentA.radius + agentB.radius;
+        float r_scaled = r / tau;
+        float phi = Mathf.Abs(Mathf.Asin(Mathf.Min(r / vCenter.magnitude, 1.0f))) * Mathf.Rad2Deg;
+        float alpha = 90.0f - phi;
+
+        Vector2 velObstacleDir = (vCenter - vCenterScaled).normalized;
+
+        Vector2 vOptA = new Vector2(agentA.desiredHeading.x, agentA.desiredHeading.z);
+        Vector2 vOptB = new Vector2(agentB.desiredHeading.x, agentB.desiredHeading.z);
+        Vector2 vx = vOptA - vOptB;
+        Vector2 vx_c = vx - vCenterScaled;
+
+        float theta = Vector2.SignedAngle(velObstacleDir, vx_c);
+        //float theta = Vector3.SignedAngle(new Vector3(velObstacleDir[0], 0, velObstacleDir[1]), new Vector3(vx_c[0], 0, vx_c[1]), Vector3.up);
+        Vector2 u;
+        Vector2 n;
+
+        if (theta < 0.0f && theta > -(180.0f - alpha))
+        {
+            Vector2 b1 = Quaternion.AngleAxis(-phi, new Vector3(0, 0, 1)) * vCenter;
+            u = Vector2.Dot(vx, b1.normalized) * b1.normalized - vx;
+            n = -Vector2.Perpendicular(b1).normalized;
+        }
+        else if (theta >= 0.0f && theta < (180.0f - alpha))
+        {
+            Vector2 b2 = Quaternion.AngleAxis(phi, new Vector3(0, 0, 1)) * vCenter;
+            u = Vector2.Dot(vx, b2.normalized) * b2.normalized - vx;
+            n = Vector2.Perpendicular(b2).normalized;
+        }
+        else
+        {
+            u = (r_scaled * vx_c.normalized + vCenterScaled) - vx;
+            n = vx_c.magnitude < Mathf.Epsilon ? -vCenter.normalized : vx_c.normalized;
+        }
+
+
+        agentA.ORCAHalfPlanes.Add(new HalfPlane(n, vOptA + 0.5f * u, (vCenter - vCenterScaled).magnitude));
+        agentB.ORCAHalfPlanes.Add(new HalfPlane(-n, vOptB - 0.5f * u, (vCenter - vCenterScaled).magnitude));
+    }
+
+   
+    void Player2AgentORCA(ref PlayerMovementController agentA, ref NavAgent agentB)
+    {
+        Vector3 dp = agentB.transform.position - agentA.transform.position;
+        Vector2 vCenter = new Vector2(dp.x, dp.z);
+        Vector2 vCenterScaled = new Vector2(dp.x, dp.z) / tau;
+        float r = agentA.radius + agentB.radius;
+        float r_scaled = r / tau;
+        float phi = Mathf.Abs(Mathf.Asin(Mathf.Min(r / vCenter.magnitude, 1.0f))) * Mathf.Rad2Deg;
+        float alpha = 90.0f - phi;
+
+        Vector2 velObstacleDir = (vCenter - vCenterScaled).normalized;
+
+        Vector2 vOptA = new Vector2(agentA.velocity.x, agentA.velocity.z);
+        Vector2 vOptB = new Vector2(agentB.desiredHeading.x, agentB.desiredHeading.z);
+        Vector2 vx = vOptA - vOptB;
+        Vector2 vx_c = vx - vCenterScaled;
+
+        float theta = Vector2.SignedAngle(velObstacleDir, vx_c);
+        //float theta = Vector3.SignedAngle(new Vector3(velObstacleDir[0], 0, velObstacleDir[1]), new Vector3(vx_c[0], 0, vx_c[1]), Vector3.up);
+        Vector2 u;
+        Vector2 n;
+
+        if (theta < 0.0f && theta > -(180.0f - alpha))
+        {
+            Vector2 b1 = Quaternion.AngleAxis(-phi, new Vector3(0, 0, 1)) * vCenter;
+            u = Vector2.Dot(vx, b1.normalized) * b1.normalized - vx;
+            n = -Vector2.Perpendicular(b1).normalized;
+        }
+        else if (theta >= 0.0f && theta < (180.0f - alpha))
+        {
+            Vector2 b2 = Quaternion.AngleAxis(phi, new Vector3(0, 0, 1)) * vCenter;
+            u = Vector2.Dot(vx, b2.normalized) * b2.normalized - vx;
+            n = Vector2.Perpendicular(b2).normalized;
+        }
+        else
+        {
+            u = (r_scaled * vx_c.normalized + vCenterScaled) - vx;
+            n = vx_c.magnitude < Mathf.Epsilon ? -vCenter.normalized : vx_c.normalized;
+        }
+
+        agentB.ORCAHalfPlanes.Add(new HalfPlane(-n, vOptB - u, (vCenter - vCenterScaled).magnitude));
+    }
+    
 }
 
 
