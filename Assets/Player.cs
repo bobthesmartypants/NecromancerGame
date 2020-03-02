@@ -46,7 +46,8 @@ public class Player : MonoBehaviour
     {
         foreach (Collider c in detector.GetColliding())
         {
-            Destroy(c.gameObject); // replace with calling enemy's check attack fn
+
+            if (c.gameObject.GetComponent<Zombie>()) Destroy(c.gameObject); // replace with calling enemy's check attack fn
         }
     }
 
