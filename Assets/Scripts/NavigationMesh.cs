@@ -939,8 +939,6 @@ public class NavigationMesh : MonoBehaviour
                 agents[i].ORCAHalfPlanes = new List<HalfPlane>();
             }
             
-            
-
         }
 
         for (int i = 0; i < agents.Length; i++)
@@ -967,10 +965,12 @@ public class NavigationMesh : MonoBehaviour
 
             foreach (HalfPlane halfPlane in agentA.ORCAHalfPlanes)
             {
+                /*
                 if(agentA.id == "A")
                 {
                     TraceHalfPlane(agentA, halfPlane);
                 }
+                */
                 
 
                 if (Vector2.Dot(optimalHeading - halfPlane.p, halfPlane.n) < 0)
@@ -1059,8 +1059,6 @@ public class NavigationMesh : MonoBehaviour
                 float zVel = AT_A_inv[1, 0] * AT_b[0] + AT_A_inv[1, 1] * AT_b[1];
                 optimalHeading = new Vector2(xVel, zVel);
                 optimalHeading = Mathf.Clamp(optimalHeading.magnitude, 0.0f, 10.0f) * optimalHeading.normalized;
-                //float.IsNaN(value);
-                Debug.Log("Fail");
             }
 
             agentA.MoveAgent(new Vector3(optimalHeading.x, 0.0f, optimalHeading.y));

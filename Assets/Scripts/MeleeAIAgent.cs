@@ -11,6 +11,11 @@ public class MeleeAIAgent : NavAgent
         base.Start();
     }
 
+    void Update()
+    {
+        //Attack player
+    }
+
 
     public override void MoveAgent(Vector3 heading)
     {

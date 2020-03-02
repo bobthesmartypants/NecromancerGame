@@ -49,4 +49,5 @@ public class PlayerMovementController : MonoBehaviour
             equipedMagic.Cast();
         }
     }
+
 }

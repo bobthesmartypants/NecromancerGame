@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class NavAgent : MonoBehaviour
 {
     public List<Vector3> pathPoints;
@@ -12,6 +13,7 @@ public class NavAgent : MonoBehaviour
     protected readonly float TARGET_SPEED = 10.0f;
     public List<HalfPlane> ORCAHalfPlanes;
     public Vector3 desiredHeading;
+
 
     // Start is called before the first frame update
     protected void Start()
