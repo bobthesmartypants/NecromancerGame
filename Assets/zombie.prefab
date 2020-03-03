@@ -90,7 +90,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5837017915548248079}
   m_Material: {fileID: 0}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.6
   m_Height: 3
@@ -106,7 +106,7 @@ Rigidbody:
   serializedVersion: 2
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -124,3 +124,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6900fed598fbc1a489cb10153bf19c96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
+  visionRadius: 5
+  closeRadius: 1.5
+  drag: 3
+  separationStrength: 2
+  matchStrength: 2
+  groupStrength: 0.1
+  homingStrength: 1
+  speed: 2

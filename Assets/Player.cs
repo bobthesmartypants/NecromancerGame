@@ -38,7 +38,6 @@ public class Player : MonoBehaviour
         if (upness != 0 || rightness != 0)
         {
             detector.transform.localRotation = GetQuaternion(rightness, upness);
-            Debug.Log(detector.transform.localRotation);
         }
     }
 
