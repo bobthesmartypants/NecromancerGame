@@ -15,7 +15,7 @@ public class FriendlyMeleeAIAgent : NavAgent
     public Transform master;
     Transform wanderingTransform;
     float nextWanderTime;
-    float WANDER_RADIUS = 15.0f;
+    float WANDER_RADIUS = 30.0f;
     // Start is called before the first frame update
     new void Start()
     {

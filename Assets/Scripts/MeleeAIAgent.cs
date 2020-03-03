@@ -11,7 +11,7 @@ public class MeleeAIAgent : NavAgent
     }
     AIState state;
     public Transform playerTrans;
-    float ATTACK_RADIUS = 15.0f;
+    float ATTACK_RADIUS = 30.0f;
     // Start is called before the first frame update
     new void Start()
     {

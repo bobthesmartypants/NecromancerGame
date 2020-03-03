@@ -54,6 +54,7 @@ public class FriendlyAIManager : MonoBehaviour
             readyForEnemy.RemoveAt(readyForEnemy.Count - 1);
             enemyQueue.RemoveFirst();
             enemyHead = enemyHead.Next;
+            Debug.Log("ATTACK");
             j += 1;
         }
         
