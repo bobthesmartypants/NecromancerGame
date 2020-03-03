@@ -18,8 +18,12 @@ public class AIManager : MonoBehaviour
             _instance = this;
         }
     }
+
+    public List<NavAgent> agents = new List<NavAgent>();
     public List<FriendlyMeleeAIAgent> friendlies;
     public List<MeleeAIAgent> enemies;
+    public PlayerMovementController playerAgent;
+
     LinkedList<MeleeAIAgent> enemyQueue;
     List<FriendlyMeleeAIAgent> readyForEnemy;
     
@@ -27,44 +31,42 @@ public class AIManager : MonoBehaviour
     void Start()
     {
         enemyQueue = new LinkedList<MeleeAIAgent>();
+        playerAgent = transform.parent.gameObject.GetComponent<PlayerMovementController>();
     }
 
     // Update is called once per frame
     void Update()
     {
         readyForEnemy = new List<FriendlyMeleeAIAgent>();
+
         foreach (FriendlyMeleeAIAgent friendly in friendlies)
         {
             friendly.ExecuteState();
         }
 
-        foreach (MeleeAIAgent enemy in enemies)
+        MeleeAIAgent[] enemiesCopy = new MeleeAIAgent[enemies.Count];
+        enemies.CopyTo(enemiesCopy);
+        foreach (MeleeAIAgent enemy in enemiesCopy)
         {
             enemy.ExecuteState();
         }
 
         
-        int j = 0;
         LinkedListNode<MeleeAIAgent> enemyHead = enemyQueue.First;
-        while (enemyHead != null && j < readyForEnemy.Count)
+        while (enemyHead != null && readyForEnemy.Count > 0)
         {
             readyForEnemy.Sort((f1, f2) =>
                 -Vector3.Distance(f1.transform.position, enemyHead.Value.transform.position).CompareTo(Vector3.Distance(f2.transform.position, enemyHead.Value.transform.position)));
             readyForEnemy[readyForEnemy.Count - 1].AttackEnemy(enemyHead.Value);
+            enemyHead.Value.AddPursuer(readyForEnemy[readyForEnemy.Count - 1]);
             readyForEnemy.RemoveAt(readyForEnemy.Count - 1);
             enemyQueue.RemoveFirst();
             enemyHead = enemyHead.Next;
-            j += 1;
+            
         }
         
     }
 
-    /*
-    public void ConvertToFriendly(NavAgent enemy)
-    {
-        friendlies.AddAfter(enemy);
-    }
-    */
 
     public void PutOnDispatchQueue(FriendlyMeleeAIAgent friendlyAI)
     {
@@ -80,4 +82,5 @@ public class AIManager : MonoBehaviour
     {
         enemyQueue.Remove(enemyAI);
     }
+
 }

@@ -14,6 +14,7 @@ public class FriendlyMeleeAIAgent : NavAgent
     AIState state;
     public Transform master;
     Transform wanderingTransform;
+    MeleeAIAgent enemyTarget;
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
     // Start is called before the first frame update
@@ -32,6 +33,7 @@ public class FriendlyMeleeAIAgent : NavAgent
 
     public void ExecuteState()
     {
+        
         switch (state)
         {
             case AIState.AttackingEnemy:
@@ -39,6 +41,8 @@ public class FriendlyMeleeAIAgent : NavAgent
                 {
                     state = AIState.ReturningToMaster;
                     target = master;
+                    enemyTarget.RemovePursuer(this);
+                    enemyTarget = null;
                 }
                 break;
             case AIState.ReturningToMaster:
@@ -47,7 +51,6 @@ public class FriendlyMeleeAIAgent : NavAgent
                     state = AIState.SearchingForEnemy;
                     target = wanderingTransform;
                 }
-                
                 break;
             case AIState.SearchingForEnemy:
                 if ((master.position - transform.position).magnitude >= WANDER_RADIUS)
@@ -72,21 +75,31 @@ public class FriendlyMeleeAIAgent : NavAgent
     public void AttackEnemy(MeleeAIAgent enemyAI)
     {
         state = AIState.AttackingEnemy;
+        enemyTarget = enemyAI;
         target = enemyAI.transform;
+    }
+
+    public void TargetWasKilled()
+    {
+        state = AIState.SearchingForEnemy;
+        enemyTarget = null;
+        target = wanderingTransform;
     }
 
     public override void MoveAgent(Vector3 heading)
     {
         transform.Translate(heading * Time.deltaTime, Space.World);
-        Vector3 curPos = new Vector3(transform.position.x, 0.0f, transform.position.z);
+        Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
         //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
         //Smooth movement
         desiredHeading = Vector3.Lerp(heading, TARGET_SPEED * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
-        Debug.DrawLine(curPos, curPos + desiredHeading, Color.magenta);
+        Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
     }
 
     private void OnDestroy()
     {
+        //TODO: Remove from NavMesh dictionary
+
         if (wanderingTransform)
         {
             Destroy(wanderingTransform.gameObject);

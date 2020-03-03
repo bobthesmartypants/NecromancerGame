@@ -7,11 +7,15 @@ public class MeleeAIAgent : NavAgent
     public enum AIState
     {
         Attacking,
-        NavigatingToPlayer
+        NavigatingToPlayer,
+        Dying
     }
     AIState state;
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
+    float health = 3.0f;
+
+    List<FriendlyMeleeAIAgent> pursuers;
 
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 2.0f;
@@ -20,6 +24,7 @@ public class MeleeAIAgent : NavAgent
     {
         base.Start();
         state = AIState.NavigatingToPlayer;
+        pursuers = new List<FriendlyMeleeAIAgent>();
     }
 
     public void ExecuteState()
@@ -47,6 +52,7 @@ public class MeleeAIAgent : NavAgent
                     state = AIState.NavigatingToPlayer;
                     target = playerTrans;
                     AIManager.Instance.RemoveFromEnemyQueue(this);
+                    
                 }
                 break;
             case AIState.NavigatingToPlayer:
@@ -56,6 +62,13 @@ public class MeleeAIAgent : NavAgent
                     AIManager.Instance.PutOnEnemyQueue(this);
                 }
                 break;
+            case AIState.Dying:
+                //Remove from navmesh agents
+                AIManager.Instance.agents.Remove(this);
+                AIManager.Instance.enemies.Remove(this);
+                //Play dying animation with coroutine maybe
+                Destroy(this.gameObject, 0.5f);
+                break;
         }
     }
 
@@ -63,11 +76,49 @@ public class MeleeAIAgent : NavAgent
     public override void MoveAgent(Vector3 heading)
     {
         transform.Translate(heading * Time.deltaTime, Space.World);
-        Vector3 curPos = new Vector3(transform.position.x, 0.0f, transform.position.z);
+        Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
         //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
         //Smooth movement
         desiredHeading = Vector3.Lerp(heading, TARGET_SPEED * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
-        Debug.DrawLine(curPos, curPos + desiredHeading, Color.magenta);
+        Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
 
+    }
+
+    public void AddPursuer(FriendlyMeleeAIAgent friendly)
+    {
+        pursuers.Add(friendly);
+    }
+
+    public void RemovePursuer(FriendlyMeleeAIAgent friendly)
+    {
+        pursuers.Remove(friendly);
+    }
+
+    private void OnDestroy()
+    {
+        //TODO: Remove from NavMesh dictionary
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.GetComponent<FriendlyMeleeAIAgent>())
+        {
+            health -= Time.deltaTime;
+            if (health < 0)
+            {
+                //ERROR. Not necessarily killed by friendly that targeted it
+                state = AIState.Dying;
+
+                //Remove from enemy queue because dead
+                AIManager.Instance.RemoveFromEnemyQueue(this);
+
+                //Disable collider to avoid future triggers
+                gameObject.GetComponent<Collider>().enabled = false;
+                foreach (FriendlyMeleeAIAgent friendly in pursuers)
+                {
+                    friendly.TargetWasKilled();
+                }
+            }
+        }
     }
 }
