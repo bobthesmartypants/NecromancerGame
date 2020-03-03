@@ -895,6 +895,8 @@ public class NavigationMesh : MonoBehaviour
 
         breadCrumbs.Add(targetPos);
 
+
+        //Draws path points
         for (int i = 1; i < breadCrumbs.Count; i++)
         {
             Debug.DrawLine(breadCrumbs[i - 1], breadCrumbs[i], Color.green);
@@ -946,6 +948,8 @@ public class NavigationMesh : MonoBehaviour
             
         }
 
+
+        //TODO: Optimize this
         for (int i = 0; i < agents.Count; i++)
         {
             NavAgent agentA = agents[i];

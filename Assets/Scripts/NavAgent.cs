@@ -20,7 +20,7 @@ public class NavAgent : MonoBehaviour
     {
         desiredHeading = TARGET_SPEED * (target.position - transform.position).normalized;
         Vector3 spriteBounds = transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().bounds.size;
-        radius = spriteBounds.x / 2;
+        radius = spriteBounds.x / 3;
         transform.forward = -Camera.main.transform.forward;
         transform.up = Camera.main.transform.up;
         pathPoints = new List<Vector3>();
