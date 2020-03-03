@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FriendlyAIManager : MonoBehaviour
+public class AIManager : MonoBehaviour
 {
-    private static FriendlyAIManager _instance;
-    public static FriendlyAIManager Instance { get { return _instance; } }
+    private static AIManager _instance;
+    public static AIManager Instance { get { return _instance; } }
 
     private void Awake()
     {
@@ -54,7 +54,6 @@ public class FriendlyAIManager : MonoBehaviour
             readyForEnemy.RemoveAt(readyForEnemy.Count - 1);
             enemyQueue.RemoveFirst();
             enemyHead = enemyHead.Next;
-            Debug.Log("ATTACK");
             j += 1;
         }
         
@@ -81,27 +80,4 @@ public class FriendlyAIManager : MonoBehaviour
     {
         enemyQueue.Remove(enemyAI);
     }
-
-
-    /*
-    private void OnTriggerEnter(Collider other)
-    {
-        MeleeAIAgent enemyAI = other.gameObject.GetComponent<MeleeAIAgent>();
-        if (enemyAI)
-        {
-            enemyQueue.AddLast(enemyAI);
-        }
-        
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        MeleeAIAgent enemyAI = other.gameObject.GetComponent<MeleeAIAgent>();
-        if (enemyAI)
-        {
-            enemyQueue.Remove(enemyAI);
-        }
-        
-    }
-    */
 }

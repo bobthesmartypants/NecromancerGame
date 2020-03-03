@@ -57,7 +57,7 @@ public class FriendlyMeleeAIAgent : NavAgent
                 }
                 else
                 {
-                    FriendlyAIManager.Instance.PutOnDispatchQueue(this);
+                    AIManager.Instance.PutOnDispatchQueue(this);
                     if (Time.time > nextWanderTime)
                     {
                         nextWanderTime = Time.time + Random.Range(3.0f, 8.0f);

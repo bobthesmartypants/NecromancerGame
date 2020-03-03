@@ -12,6 +12,9 @@ public class MeleeAIAgent : NavAgent
     AIState state;
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
+
+    //How much more the enemies prefer attacking the player over allies
+    static float PLAYER_PREFERENCE = 2.0f;
     // Start is called before the first frame update
     new void Start()
     {
@@ -27,11 +30,14 @@ public class MeleeAIAgent : NavAgent
             case AIState.Attacking:
                 //Attack closest of the friendlies and player
                 Transform closestAgent = playerTrans;
-                foreach(FriendlyMeleeAIAgent friendly in FriendlyAIManager.Instance.friendlies)
+                float minDistance = Vector3.Distance(closestAgent.position, transform.position) / PLAYER_PREFERENCE;
+                foreach(FriendlyMeleeAIAgent friendly in AIManager.Instance.friendlies)
                 {
-                    if(Vector3.Distance(friendly.transform.position, transform.position) < Vector3.Distance(closestAgent.position, transform.position))
+                    float dist = Vector3.Distance(friendly.transform.position, transform.position);
+                    if (dist < minDistance)
                     {
                         closestAgent = friendly.transform;
+                        minDistance = dist;
                     }
                 }
                 target = closestAgent;
@@ -40,14 +46,14 @@ public class MeleeAIAgent : NavAgent
                 {
                     state = AIState.NavigatingToPlayer;
                     target = playerTrans;
-                    FriendlyAIManager.Instance.RemoveFromEnemyQueue(this);
+                    AIManager.Instance.RemoveFromEnemyQueue(this);
                 }
                 break;
             case AIState.NavigatingToPlayer:
                 if ((playerTrans.position - transform.position).magnitude < ATTACK_RADIUS)
                 {
                     state = AIState.Attacking;
-                    FriendlyAIManager.Instance.PutOnEnemyQueue(this);
+                    AIManager.Instance.PutOnEnemyQueue(this);
                 }
                 break;
         }
