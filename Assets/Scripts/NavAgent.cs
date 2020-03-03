@@ -7,6 +7,7 @@ public class NavAgent : MonoBehaviour
 {
     public List<Vector3> pathPoints;
     public int navMeshTriIdx;
+    public int targetNavMeshTriIdx;
     public Transform target;
     public float radius;
     public string id;
