@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4406031573204453702}
-  - component: {fileID: 6986724866565547665}
   - component: {fileID: 4193272405405129736}
   m_Layer: 0
   m_Name: FriendlyBubble
@@ -32,19 +31,6 @@ Transform:
   m_Father: {fileID: 7162238716310289475}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &6986724866565547665
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2839147207488191548}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 15
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4193272405405129736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58,6 +44,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   friendlies: []
+  enemies: []
 --- !u!1 &7162238716310289533
 GameObject:
   m_ObjectHideFlags: 0
@@ -103,7 +90,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffe87b9bc15229843a62100481282219, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  navMeshTriIdx: 0
   radius: 0
   velocity: {x: 0, y: 0, z: 0}
 --- !u!1 &7162238716402732672

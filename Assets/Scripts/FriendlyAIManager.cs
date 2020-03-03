@@ -19,6 +19,7 @@ public class FriendlyAIManager : MonoBehaviour
         }
     }
     public List<FriendlyMeleeAIAgent> friendlies;
+    public List<MeleeAIAgent> enemies;
     LinkedList<MeleeAIAgent> enemyQueue;
     List<FriendlyMeleeAIAgent> readyForEnemy;
     
@@ -37,17 +38,25 @@ public class FriendlyAIManager : MonoBehaviour
             friendly.ExecuteState();
         }
 
-        LinkedListNode<MeleeAIAgent> head = enemyQueue.First;
-        if (head != null)
+        foreach (MeleeAIAgent enemy in enemies)
         {
-            readyForEnemy.Sort((f1, f2) => 
-            Vector3.Distance(f1.transform.position, head.Value.transform.position).CompareTo(Vector3.Distance(f2.transform.position, head.Value.transform.position)));
-
-            if (readyForEnemy.Count > 0)
-            {
-                readyForEnemy[0].AttackEnemy(head.Value);
-            }
+            enemy.ExecuteState();
         }
+
+        
+        int j = 0;
+        LinkedListNode<MeleeAIAgent> enemyHead = enemyQueue.First;
+        while (enemyHead != null && j < readyForEnemy.Count)
+        {
+            readyForEnemy.Sort((f1, f2) =>
+                -Vector3.Distance(f1.transform.position, enemyHead.Value.transform.position).CompareTo(Vector3.Distance(f2.transform.position, enemyHead.Value.transform.position)));
+            readyForEnemy[readyForEnemy.Count - 1].AttackEnemy(enemyHead.Value);
+            readyForEnemy.RemoveAt(readyForEnemy.Count - 1);
+            enemyQueue.RemoveFirst();
+            enemyHead = enemyHead.Next;
+            j += 1;
+        }
+        
     }
 
     /*
@@ -57,13 +66,23 @@ public class FriendlyAIManager : MonoBehaviour
     }
     */
 
-    public void PutOnQueue(FriendlyMeleeAIAgent friendlyAI)
+    public void PutOnDispatchQueue(FriendlyMeleeAIAgent friendlyAI)
     {
         readyForEnemy.Add(friendlyAI);
     }
-    
+
+    public void PutOnEnemyQueue(MeleeAIAgent enemyAI)
+    {
+        enemyQueue.AddLast(enemyAI);
+    }
+
+    public void RemoveFromEnemyQueue(MeleeAIAgent enemyAI)
+    {
+        enemyQueue.Remove(enemyAI);
+    }
 
 
+    /*
     private void OnTriggerEnter(Collider other)
     {
         MeleeAIAgent enemyAI = other.gameObject.GetComponent<MeleeAIAgent>();
@@ -83,5 +102,5 @@ public class FriendlyAIManager : MonoBehaviour
         }
         
     }
-
+    */
 }

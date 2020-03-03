@@ -4,16 +4,53 @@ using UnityEngine;
 
 public class MeleeAIAgent : NavAgent
 {
-
+    public enum AIState
+    {
+        Attacking,
+        NavigatingToPlayer
+    }
+    AIState state;
+    public Transform playerTrans;
+    float ATTACK_RADIUS = 15.0f;
     // Start is called before the first frame update
     new void Start()
     {
         base.Start();
+        state = AIState.NavigatingToPlayer;
     }
 
-    void Update()
+    public void ExecuteState()
     {
         //Attack player
+        switch (state)
+        {
+            case AIState.Attacking:
+                //Attack closest of the friendlies and player
+                Transform closestAgent = playerTrans;
+                foreach(FriendlyMeleeAIAgent friendly in FriendlyAIManager.Instance.friendlies)
+                {
+                    if(Vector3.Distance(friendly.transform.position, transform.position) < Vector3.Distance(closestAgent.position, transform.position))
+                    {
+                        closestAgent = friendly.transform;
+                    }
+                }
+                target = closestAgent;
+
+                if ((playerTrans.position - transform.position).magnitude >= ATTACK_RADIUS)
+                {
+                    state = AIState.NavigatingToPlayer;
+                    target = playerTrans;
+                    FriendlyAIManager.Instance.RemoveFromEnemyQueue(this);
+                }
+                break;
+            case AIState.NavigatingToPlayer:
+                if ((playerTrans.position - transform.position).magnitude < ATTACK_RADIUS)
+                {
+                    state = AIState.Attacking;
+                    FriendlyAIManager.Instance.PutOnEnemyQueue(this);
+                }
+                break;
+        }
     }
 
 

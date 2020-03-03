@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
-    public int navMeshTriIdx;
     public float radius;
     public Vector3 velocity;
     float playerSpeed = 15.0f;

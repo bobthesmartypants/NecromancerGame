@@ -434,6 +434,7 @@ public class NavigationMesh : MonoBehaviour
     public Graph<NavMeshTriangle> navMeshGraph;
     HashSet<int> boundaryVerts = new HashSet<int>();
     Mesh mesh;
+    Dictionary<int, int> transformToTriIdxMap;
 
     //Maps 2 triangle indices to the edge separating them. The edge is represented by
     //2 vertex indices
@@ -449,6 +450,8 @@ public class NavigationMesh : MonoBehaviour
         {
             agents[i].navMeshTriIdx = NavMeshTriFromPos(agents[i].transform.position);
         }
+
+        transformToTriIdxMap = new Dictionary<int, int>();
     }
 
     int NavMeshTriFromPos(Vector3 pos)
@@ -912,30 +915,39 @@ public class NavigationMesh : MonoBehaviour
 
     void LateUpdate()
     {
-        int targetTriIdx = NavMeshTriFromPos(playerAgent.transform.position);
-        if (targetTriIdx >= 0)
+        
+        int playerTriIdx = NavMeshTriFromPos(playerAgent.transform.position);
+        if (playerTriIdx >= 0)
         {
-            playerAgent.navMeshTriIdx = targetTriIdx;
+            transformToTriIdxMap[playerAgent.transform.GetInstanceID()] = playerTriIdx;
         }
-
+        
 
         for (int i = 0; i < agents.Length; i++)
         {
+            int targetTriIdx = NavMeshTriFromPos(agents[i].target.position);
+            if (targetTriIdx >= 0)
+            {
+                transformToTriIdxMap[agents[i].target.transform.GetInstanceID()] = targetTriIdx;
+            }
+
             int agentTriIdx = NavMeshTriFromPos(agents[i].transform.position);
             if(agentTriIdx >= 0)
             {
                 agents[i].navMeshTriIdx = agentTriIdx;
-                int[] backPointers = navMeshGraph.DijkstrasAlgorithm(playerAgent.navMeshTriIdx);
+                transformToTriIdxMap[agents[i].transform.GetInstanceID()] = agentTriIdx;
+                int[] backPointers = navMeshGraph.DijkstrasAlgorithm(transformToTriIdxMap[agents[i].target.transform.GetInstanceID()]);
                 List<int> triPath = navMeshGraph.TraceBackPointers(backPointers, agents[i].navMeshTriIdx);
                 Vector3 agentStartPos = new Vector3(agents[i].transform.position.x, 0.0f, agents[i].transform.position.z);
                 List<Vector3> shortestPathPoints = StringPullingAlgorithm(triPath, agentStartPos, agents[i].target.position, agents[i].radius);
                 agents[i].pathPoints = shortestPathPoints;
                 agents[i].ORCAHalfPlanes = new List<HalfPlane>();
+                
             }
             else
             {
                 //AI agent is out of bounds. Make it head towards last navigation mesh triangle
-                agents[i].pathPoints = new List<Vector3>() { navMeshGraph.nodes[agents[i].navMeshTriIdx].centroid };
+                agents[i].pathPoints = new List<Vector3>() { navMeshGraph.nodes[transformToTriIdxMap[agents[i].transform.GetInstanceID()]].centroid };
                 agents[i].ORCAHalfPlanes = new List<HalfPlane>();
             }
             
