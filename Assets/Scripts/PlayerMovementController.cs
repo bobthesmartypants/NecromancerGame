@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
-    public int navMeshTriIdx;
     public float radius;
     public Vector3 velocity;
     float playerSpeed = 15.0f;
@@ -42,7 +41,8 @@ public class PlayerMovementController : MonoBehaviour
             velocity += playerSpeed * new Vector3(0, 0, -1);
         }
 
-        transform.position += velocity * Time.deltaTime;
+        
+        transform.position += Mathf.Clamp(velocity.magnitude, 0.0f, playerSpeed) * velocity.normalized * Time.deltaTime;
 
         if (Input.GetMouseButton(0))
         {

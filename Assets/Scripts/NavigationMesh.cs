@@ -422,8 +422,6 @@ public class Graph<T> where T : INode
 
 public class NavigationMesh : MonoBehaviour
 {
-    public PlayerMovementController playerAgent;
-    public NavAgent[] agents = new NavAgent[4];
     const float LARGE_FLOAT = 10000.0f;
     const float MIN_X_VEL = -20.0f;
     const float MAX_X_VEL = 20.0f;
@@ -444,11 +442,6 @@ public class NavigationMesh : MonoBehaviour
     {
         mesh = GetComponent<MeshFilter>().mesh;
         navMeshGraph = NavMeshToGraph();
-
-        for (int i = 0; i < agents.Length; i++)
-        {
-            agents[i].navMeshTriIdx = NavMeshTriFromPos(agents[i].transform.position);
-        }
     }
 
     int NavMeshTriFromPos(Vector3 pos)
@@ -900,6 +893,8 @@ public class NavigationMesh : MonoBehaviour
 
         breadCrumbs.Add(targetPos);
 
+
+        //Draws path points
         for (int i = 1; i < breadCrumbs.Count; i++)
         {
             Debug.DrawLine(breadCrumbs[i - 1], breadCrumbs[i], Color.green);
@@ -912,25 +907,27 @@ public class NavigationMesh : MonoBehaviour
 
     void LateUpdate()
     {
-        int targetTriIdx = NavMeshTriFromPos(playerAgent.transform.position);
-        if (targetTriIdx >= 0)
-        {
-            playerAgent.navMeshTriIdx = targetTriIdx;
-        }
+        List<NavAgent> agents = AIManager.Instance.agents;
 
-
-        for (int i = 0; i < agents.Length; i++)
+        for (int i = 0; i < agents.Count; i++)
         {
+            int targetTriIdx = NavMeshTriFromPos(agents[i].target.position);
+            if (targetTriIdx >= 0)
+            {
+                agents[i].targetNavMeshTriIdx = targetTriIdx;
+            }
+
             int agentTriIdx = NavMeshTriFromPos(agents[i].transform.position);
-            if(agentTriIdx >= 0)
+            if (agentTriIdx >= 0)
             {
                 agents[i].navMeshTriIdx = agentTriIdx;
-                int[] backPointers = navMeshGraph.DijkstrasAlgorithm(playerAgent.navMeshTriIdx);
+                int[] backPointers = navMeshGraph.DijkstrasAlgorithm(agents[i].targetNavMeshTriIdx);
                 List<int> triPath = navMeshGraph.TraceBackPointers(backPointers, agents[i].navMeshTriIdx);
                 Vector3 agentStartPos = new Vector3(agents[i].transform.position.x, 0.0f, agents[i].transform.position.z);
                 List<Vector3> shortestPathPoints = StringPullingAlgorithm(triPath, agentStartPos, agents[i].target.position, agents[i].radius);
                 agents[i].pathPoints = shortestPathPoints;
                 agents[i].ORCAHalfPlanes = new List<HalfPlane>();
+
             }
             else
             {
@@ -938,15 +935,18 @@ public class NavigationMesh : MonoBehaviour
                 agents[i].pathPoints = new List<Vector3>() { navMeshGraph.nodes[agents[i].navMeshTriIdx].centroid };
                 agents[i].ORCAHalfPlanes = new List<HalfPlane>();
             }
-            
+
         }
 
-        for (int i = 0; i < agents.Length; i++)
+        //TODO: Optimize this
+        for (int i = 0; i < agents.Count; i++)
         {
-            Player2AgentORCA(ref playerAgent, ref agents[i]);
-            for (int j = i + 1; j < agents.Length; j++)
+            NavAgent agentA = agents[i];
+            Player2AgentORCA(ref AIManager.Instance.playerAgent, ref agentA);
+            for (int j = i + 1; j < agents.Count; j++)
             {
-                Agent2AgentORCA(ref agents[i], ref agents[j]);
+                NavAgent agentB = agents[j];
+                Agent2AgentORCA(ref agentA, ref agentB);
             }
         }
 
