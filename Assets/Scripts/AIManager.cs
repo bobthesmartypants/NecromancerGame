@@ -30,7 +30,6 @@ public class AIManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        enemyQueue = new LinkedList<MeleeAIAgent>();
         playerAgent = transform.parent.gameObject.GetComponent<PlayerMovementController>();
     }
 
@@ -44,6 +43,7 @@ public class AIManager : MonoBehaviour
             friendly.ExecuteState();
         }
 
+        enemyQueue = new LinkedList<MeleeAIAgent>();
         MeleeAIAgent[] enemiesCopy = new MeleeAIAgent[enemies.Count];
         enemies.CopyTo(enemiesCopy);
         foreach (MeleeAIAgent enemy in enemiesCopy)
@@ -51,7 +51,6 @@ public class AIManager : MonoBehaviour
             enemy.ExecuteState();
         }
 
-        
         LinkedListNode<MeleeAIAgent> enemyHead = enemyQueue.First;
         while (enemyHead != null && readyForEnemy.Count > 0)
         {
@@ -62,9 +61,8 @@ public class AIManager : MonoBehaviour
             readyForEnemy.RemoveAt(readyForEnemy.Count - 1);
             enemyQueue.RemoveFirst();
             enemyHead = enemyHead.Next;
-            
         }
-        
+
     }
 
 
@@ -76,11 +74,6 @@ public class AIManager : MonoBehaviour
     public void PutOnEnemyQueue(MeleeAIAgent enemyAI)
     {
         enemyQueue.AddLast(enemyAI);
-    }
-
-    public void RemoveFromEnemyQueue(MeleeAIAgent enemyAI)
-    {
-        enemyQueue.Remove(enemyAI);
     }
 
 }

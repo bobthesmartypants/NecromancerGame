@@ -15,7 +15,8 @@ public class MeleeAIAgent : NavAgent
     float ATTACK_RADIUS = 30.0f;
     float health = 3.0f;
 
-    List<FriendlyMeleeAIAgent> pursuers;
+    //List<FriendlyMeleeAIAgent> pursuers;
+    List<FriendlyMeleeAIAgent> pursuers = new List<FriendlyMeleeAIAgent>();
 
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 2.0f;
@@ -24,7 +25,6 @@ public class MeleeAIAgent : NavAgent
     {
         base.Start();
         state = AIState.NavigatingToPlayer;
-        pursuers = new List<FriendlyMeleeAIAgent>();
     }
 
     public void ExecuteState()
@@ -51,15 +51,18 @@ public class MeleeAIAgent : NavAgent
                 {
                     state = AIState.NavigatingToPlayer;
                     target = playerTrans;
-                    AIManager.Instance.RemoveFromEnemyQueue(this);
                     
+                }
+                //If enemy does not have any pursuers, put it on the queue so that it can be assigned some
+                else if(pursuers.Count == 0)
+                {
+                    AIManager.Instance.PutOnEnemyQueue(this);
                 }
                 break;
             case AIState.NavigatingToPlayer:
                 if ((playerTrans.position - transform.position).magnitude < ATTACK_RADIUS)
                 {
                     state = AIState.Attacking;
-                    AIManager.Instance.PutOnEnemyQueue(this);
                 }
                 break;
             case AIState.Dying:
@@ -99,6 +102,7 @@ public class MeleeAIAgent : NavAgent
         //TODO: Remove from NavMesh dictionary
     }
 
+    //This gets called before Update functions.
     private void OnTriggerStay(Collider other)
     {
         if (other.gameObject.GetComponent<FriendlyMeleeAIAgent>())
@@ -108,9 +112,6 @@ public class MeleeAIAgent : NavAgent
             {
                 //ERROR. Not necessarily killed by friendly that targeted it
                 state = AIState.Dying;
-
-                //Remove from enemy queue because dead
-                AIManager.Instance.RemoveFromEnemyQueue(this);
 
                 //Disable collider to avoid future triggers
                 gameObject.GetComponent<Collider>().enabled = false;

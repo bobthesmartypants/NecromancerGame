@@ -41,6 +41,7 @@ public class FriendlyMeleeAIAgent : NavAgent
                 {
                     state = AIState.ReturningToMaster;
                     target = master;
+                    //Here an enemy can potentially have no pursuers
                     enemyTarget.RemovePursuer(this);
                     enemyTarget = null;
                 }
