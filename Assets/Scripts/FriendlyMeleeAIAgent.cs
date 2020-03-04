@@ -27,6 +27,7 @@ public class FriendlyMeleeAIAgent : NavAgent
         GameObject go = new GameObject();
         go.transform.position = transform.position;
         wanderingTransform = go.transform;
+        wanderingTransform.parent = master;
 
         speed = 15.0f;
         target = master;
