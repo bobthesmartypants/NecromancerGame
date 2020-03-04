@@ -11,7 +11,7 @@ public class NavAgent : MonoBehaviour
     public Transform target;
     public float radius;
     public string id;
-    protected readonly float TARGET_SPEED = 10.0f;
+    protected float speed = 12.0f;
     public List<HalfPlane> ORCAHalfPlanes;
     public Vector3 desiredHeading;
 
@@ -19,7 +19,7 @@ public class NavAgent : MonoBehaviour
     // Start is called before the first frame update
     protected void Start()
     {
-        desiredHeading = TARGET_SPEED * (target.position - transform.position).normalized;
+        desiredHeading = speed * (target.position - transform.position).normalized;
         Vector3 spriteBounds = transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().bounds.size;
         radius = spriteBounds.x / 3;
         transform.forward = -Camera.main.transform.forward;

@@ -932,7 +932,7 @@ public class NavigationMesh : MonoBehaviour
             else
             {
                 //AI agent is out of bounds. Make it head towards last navigation mesh triangle
-                agents[i].pathPoints = new List<Vector3>() { navMeshGraph.nodes[agents[i].targetNavMeshTriIdx].centroid };
+                agents[i].pathPoints = new List<Vector3>() { navMeshGraph.nodes[agents[i].navMeshTriIdx].centroid };
                 agents[i].ORCAHalfPlanes = new List<HalfPlane>();
             }
 

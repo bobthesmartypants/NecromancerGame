@@ -24,6 +24,8 @@ public class MeleeAIAgent : NavAgent
     new void Start()
     {
         base.Start();
+
+        speed = 12.0f;
         state = AIState.NavigatingToPlayer;
     }
 
@@ -82,7 +84,7 @@ public class MeleeAIAgent : NavAgent
         Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
         //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
         //Smooth movement
-        desiredHeading = Vector3.Lerp(heading, TARGET_SPEED * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+        desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
         Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
 
     }
