@@ -2,29 +2,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MeleeAIAgent : NavAgent
+public class MeleeAIEnemy : NavAgent
 {
     public enum AIState
     {
         Attacking,
         NavigatingToPlayer,
-        Dying
+        Dying,
+        Dead,
+        Despawning
     }
     AIState state;
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
-    float health = 3.0f;
+    int health = 100;
+    float nextAttackTime;
 
-    //List<FriendlyMeleeAIAgent> pursuers;
-    List<FriendlyMeleeAIAgent> pursuers = new List<FriendlyMeleeAIAgent>();
+    //All the ally AI that are pursuing this enemy
+    List<MeleeAIAlly> pursuers = new List<MeleeAIAlly>();
 
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 2.0f;
+
     // Start is called before the first frame update
     new void Start()
     {
         base.Start();
-
+        nextAttackTime = Time.time;
         speed = 12.0f;
         state = AIState.NavigatingToPlayer;
     }
@@ -38,12 +42,12 @@ public class MeleeAIAgent : NavAgent
                 //Attack closest of the friendlies and player
                 Transform closestAgent = playerTrans;
                 float minDistance = Vector3.Distance(closestAgent.position, transform.position) / PLAYER_PREFERENCE;
-                foreach(FriendlyMeleeAIAgent friendly in AIManager.Instance.friendlies)
+                foreach(MeleeAIAlly ally in AIManager.Instance.allies)
                 {
-                    float dist = Vector3.Distance(friendly.transform.position, transform.position);
+                    float dist = Vector3.Distance(ally.transform.position, transform.position);
                     if (dist < minDistance)
                     {
-                        closestAgent = friendly.transform;
+                        closestAgent = ally.transform;
                         minDistance = dist;
                     }
                 }
@@ -68,11 +72,18 @@ public class MeleeAIAgent : NavAgent
                 }
                 break;
             case AIState.Dying:
-                //Remove from navmesh agents
-                AIManager.Instance.agents.Remove(this);
-                AIManager.Instance.enemies.Remove(this);
                 //Play dying animation with coroutine maybe
-                Destroy(this.gameObject, 0.5f);
+                state = AIState.Despawning;
+                break;
+            case AIState.Dead:
+                //In this state, the enemy can potentially be revived by the player. If we wait too long, the enemy
+                //will despawn
+                break;
+            case AIState.Despawning:
+                AIManager.Instance.agents.Remove(this);
+                //Removing from enemies list will prevent this enemy from having its state executed again
+                AIManager.Instance.enemies.Remove(this);
+                Destroy(this.gameObject);
                 break;
         }
     }
@@ -89,39 +100,47 @@ public class MeleeAIAgent : NavAgent
 
     }
 
-    public void AddPursuer(FriendlyMeleeAIAgent friendly)
+    public void AddPursuer(MeleeAIAlly ally)
     {
-        pursuers.Add(friendly);
+        pursuers.Add(ally);
     }
 
-    public void RemovePursuer(FriendlyMeleeAIAgent friendly)
+    public void RemovePursuer(MeleeAIAlly ally)
     {
-        pursuers.Remove(friendly);
+        pursuers.Remove(ally);
     }
 
     private void OnDestroy()
     {
-        //TODO: Remove from NavMesh dictionary
+        
     }
 
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        if(health <= 0)
+        {
+            state = AIState.Dying;
+
+            //Disable collider to avoid future triggers
+            gameObject.GetComponent<Collider>().enabled = false;
+            foreach (MeleeAIAlly friendly in pursuers)
+            {
+                friendly.TargetWasKilled();
+            }
+        }
+    }
+
+    
     //This gets called before Update functions.
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.GetComponent<FriendlyMeleeAIAgent>())
+        if (other.gameObject.GetComponent<MeleeAIAlly>() && Time.time > nextAttackTime)
         {
-            health -= Time.deltaTime;
-            if (health < 0)
-            {
-                //ERROR. Not necessarily killed by friendly that targeted it
-                state = AIState.Dying;
-
-                //Disable collider to avoid future triggers
-                gameObject.GetComponent<Collider>().enabled = false;
-                foreach (FriendlyMeleeAIAgent friendly in pursuers)
-                {
-                    friendly.TargetWasKilled();
-                }
-            }
+            //Attack ally AI
+            MeleeAIAlly allyAI = other.gameObject.GetComponent<MeleeAIAlly>();
+            nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
+            allyAI.TakeDamage(20);
         }
     }
 }

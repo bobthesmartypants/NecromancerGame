@@ -732,6 +732,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4193272405405129736, guid: 0ce3064ae1170a74c8a9a2b26be70397,
         type: 3}
+      propertyPath: allies.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4193272405405129736, guid: 0ce3064ae1170a74c8a9a2b26be70397,
+        type: 3}
       propertyPath: friendlies.Array.data[0]
       value: 
       objectReference: {fileID: 1327827017542201941}
@@ -810,6 +815,16 @@ PrefabInstance:
       propertyPath: enemies.Array.data[5]
       value: 
       objectReference: {fileID: 1932845746}
+    - target: {fileID: 4193272405405129736, guid: 0ce3064ae1170a74c8a9a2b26be70397,
+        type: 3}
+      propertyPath: allies.Array.data[0]
+      value: 
+      objectReference: {fileID: 1327827017542201941}
+    - target: {fileID: 4193272405405129736, guid: 0ce3064ae1170a74c8a9a2b26be70397,
+        type: 3}
+      propertyPath: allies.Array.data[1]
+      value: 
+      objectReference: {fileID: 1378138099}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0ce3064ae1170a74c8a9a2b26be70397, type: 3}
 --- !u!1 &788516315
@@ -924,7 +939,7 @@ PrefabInstance:
     - target: {fileID: 1036229212834742052, guid: 7eccc8dbe3dbe6746b016b8a783c3dc6,
         type: 3}
       propertyPath: m_Name
-      value: Friendly (1)
+      value: Ally (1)
       objectReference: {fileID: 0}
     - target: {fileID: 2603963248045644568, guid: 7eccc8dbe3dbe6746b016b8a783c3dc6,
         type: 3}
@@ -1506,7 +1521,7 @@ PrefabInstance:
     - target: {fileID: 1036229212834742052, guid: 7eccc8dbe3dbe6746b016b8a783c3dc6,
         type: 3}
       propertyPath: m_Name
-      value: Friendly
+      value: Ally
       objectReference: {fileID: 0}
     - target: {fileID: 2603963248045644568, guid: 7eccc8dbe3dbe6746b016b8a783c3dc6,
         type: 3}

@@ -3,25 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class FriendlyMeleeAIAgent : NavAgent
+public class MeleeAIAlly : NavAgent
 {
     public enum AIState
     {
         AttackingEnemy,
         ReturningToMaster,
-        SearchingForEnemy
+        SearchingForEnemy,
+        Dying
     }
     AIState state;
     public Transform master;
     Transform wanderingTransform;
-    MeleeAIAgent enemyTarget;
+
+    //The enemy AI that this ally is targeting
+    MeleeAIEnemy enemyTarget;
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
+    int health = 100;
+    float nextAttackTime;
     // Start is called before the first frame update
     new void Start()
     {
         base.Start();
         nextWanderTime = Time.time;
+        nextAttackTime = Time.time;
         state = AIState.ReturningToMaster;
 
         GameObject go = new GameObject();
@@ -71,10 +77,13 @@ public class FriendlyMeleeAIAgent : NavAgent
                     }
                 }
                 break;
+            case AIState.Dying:
+                //Do nothing for now
+                break;
         }
     }
 
-    public void AttackEnemy(MeleeAIAgent enemyAI)
+    public void AttackEnemy(MeleeAIEnemy enemyAI)
     {
         state = AIState.AttackingEnemy;
         enemyTarget = enemyAI;
@@ -98,10 +107,24 @@ public class FriendlyMeleeAIAgent : NavAgent
         Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
     }
 
+    public void TakeDamage(int damage)
+    {
+        //Take no damage for now
+        //health -= damage;
+        if (health <= 0)
+        {
+            //state = AIState.Dying;
+
+            //Disable collider to avoid future triggers
+            gameObject.GetComponent<Collider>().enabled = false;
+
+            enemyTarget.RemovePursuer(this);
+            enemyTarget = null;
+        }
+    }
+
     private void OnDestroy()
     {
-        //TODO: Remove from NavMesh dictionary
-
         if (wanderingTransform)
         {
             Destroy(wanderingTransform.gameObject);
@@ -109,4 +132,16 @@ public class FriendlyMeleeAIAgent : NavAgent
         
     }
 
+
+    //This gets called before Update functions.
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.GetComponent<MeleeAIEnemy>() && Time.time > nextAttackTime)
+        {
+            //Attack enemy AI
+            MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
+            nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
+            enemyAI.TakeDamage(20);
+        }
+    }
 }

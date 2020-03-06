@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2588993259836650489}
   - component: {fileID: 2588993259836650486}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: goomba
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -91,7 +91,7 @@ GameObject:
   - component: {fileID: 114344038953278658}
   - component: {fileID: 5453081928834996848}
   - component: {fileID: 3752340581148964981}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -127,6 +127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pathPoints: []
   navMeshTriIdx: 0
+  targetNavMeshTriIdx: 0
   target: {fileID: 0}
   radius: 0
   id: 
