@@ -10,7 +10,8 @@ public class MeleeAIAlly : NavAgent
         AttackingEnemy,
         ReturningToMaster,
         SearchingForEnemy,
-        Dying
+        Dying,
+        Despawning
     }
     AIState state;
     public Transform master;
@@ -20,7 +21,7 @@ public class MeleeAIAlly : NavAgent
     MeleeAIEnemy enemyTarget;
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
-    int health = 100;
+    int health = 150;
     float nextAttackTime;
     // Start is called before the first frame update
     new void Start()
@@ -78,7 +79,14 @@ public class MeleeAIAlly : NavAgent
                 }
                 break;
             case AIState.Dying:
-                //Do nothing for now
+                //Play dying animation with coroutine maybe
+                state = AIState.Despawning;
+                break;
+            case AIState.Despawning:
+                AIManager.Instance.agents.Remove(this);
+                //Removing from enemies list will prevent this enemy from having its state executed again
+                AIManager.Instance.allies.Remove(this);
+                Destroy(this.gameObject);
                 break;
         }
     }
@@ -109,11 +117,11 @@ public class MeleeAIAlly : NavAgent
 
     public void TakeDamage(int damage)
     {
-        //Take no damage for now
+        //Invincible for now
         //health -= damage;
         if (health <= 0)
         {
-            //state = AIState.Dying;
+            state = AIState.Dying;
 
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;

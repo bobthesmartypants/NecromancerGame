@@ -37,8 +37,10 @@ public class AIManager : MonoBehaviour
     void Update()
     {
         readyForEnemy = new List<MeleeAIAlly>();
+        MeleeAIAlly[] alliesCopy = new MeleeAIAlly[allies.Count];
+        allies.CopyTo(alliesCopy);
         //Execute ally states
-        foreach (MeleeAIAlly ally in allies)
+        foreach (MeleeAIAlly ally in alliesCopy)
         {
             ally.ExecuteState();
         }
