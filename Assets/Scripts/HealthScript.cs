@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HealthScript : MonoBehaviour
+public class HealthScript
 {
     public int startingHealth = 10;
     public int maxHealth = 10;
     private int currentHealth;
-    private bool alive = true;
 
-
-    // Start is called before the first frame update
-    void Start()
+    HealthScript(int startingHealth, int maxHealth)
     {
         if (maxHealth < startingHealth)
         {
@@ -20,29 +17,20 @@ public class HealthScript : MonoBehaviour
         currentHealth = startingHealth;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (currentHealth <= 0)
-        {
-            die();
-        }
-    }
-
     // change health back to max value
     public void setHealthToMax()
     {
         currentHealth = maxHealth;
     }
 
-    // decrease health by one
-    public void decrementHealth()
+    // decrease health by one. Returns false if character is dead, true if character is alive
+    public bool decrementHealth()
     {
         currentHealth--;
-    }
-
-    private void die()
-    {
-        alive = false;
+        if (currentHealth <= 0)
+        {
+            return false;
+        }
+        return true;
     }
 }
