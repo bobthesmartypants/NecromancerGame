@@ -121,7 +121,8 @@ public class MeleeAIEnemy : NavAgent
 
     public void TakeDamage(int damage)
     {
-        if (health.DecrementHealth(damage))
+        int currentHealth = health.GetCurrentHealth();
+        if (health.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
 

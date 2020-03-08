@@ -33,4 +33,9 @@ public class HealthScript
         }
         return false;
     }
+
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
 }
