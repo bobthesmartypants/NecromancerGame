@@ -14,6 +14,7 @@ public class HealthScript
         {
             startingHealth = maxHealth;
         }
+        
         currentHealth = startingHealth;
     }
 
