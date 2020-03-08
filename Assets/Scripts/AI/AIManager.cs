@@ -19,6 +19,8 @@ public class AIManager : MonoBehaviour
         }
     }
 
+    public List<Zombie> zombies = new List<Zombie>();
+
     public List<NavAgent> agents = new List<NavAgent>();
     public List<MeleeAIAlly> allies;
     public List<MeleeAIEnemy> enemies;
@@ -67,6 +69,7 @@ public class AIManager : MonoBehaviour
             enemyQueue.RemoveFirst();
             enemyHead = enemyHead.Next;
         }
+
 
     }
 

@@ -965,14 +965,6 @@ public class NavigationMesh : MonoBehaviour
 
             foreach (HalfPlane halfPlane in agentA.ORCAHalfPlanes)
             {
-                /*
-                if(agentA.id == "A")
-                {
-                    TraceHalfPlane(agentA, halfPlane);
-                }
-                */
-                
-
                 if (Vector2.Dot(optimalHeading - halfPlane.p, halfPlane.n) < 0)
                 {
                     Vector2 dir = Vector2.Perpendicular(halfPlane.n);
@@ -1029,7 +1021,7 @@ public class NavigationMesh : MonoBehaviour
 
             if (noValidVelocity)
             {
-                //There is no velocity that avoids obstacles. Find velocity that satisfies the least squares
+                //There is no velocity that avoids obstacles. Find velocity that satisfies the weighted least squares
                 //distances from each half plane
 
                 float[,] AT_A = new float[2, 2] { {0.0f, 0.0f },
