@@ -15,14 +15,18 @@ public class MeleeAIEnemy : NavAgent
     AIState state;
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
-    int health = 100;
-    float nextAttackTime;
+    
+    
 
     //All the ally AI that are pursuing this enemy
     List<MeleeAIAlly> pursuers = new List<MeleeAIAlly>();
 
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 2.0f;
+
+    HealthScript health = new HealthScript(5, 5);
+    //int health = 100;
+    float nextAttackTime;
 
     // Start is called before the first frame update
     new void Start()
@@ -117,8 +121,7 @@ public class MeleeAIEnemy : NavAgent
 
     public void TakeDamage(int damage)
     {
-        health -= damage;
-        if(health <= 0)
+        if (health.DecrementHealth(damage))
         {
             state = AIState.Dying;
 
@@ -140,7 +143,7 @@ public class MeleeAIEnemy : NavAgent
             //Attack ally AI
             MeleeAIAlly allyAI = other.gameObject.GetComponent<MeleeAIAlly>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
-            allyAI.TakeDamage(20);
+            allyAI.TakeDamage(1);
         }
     }
 }

@@ -8,7 +8,7 @@ public class HealthScript
     public int maxHealth = 10;
     private int currentHealth;
 
-    HealthScript(int startingHealth, int maxHealth)
+    public HealthScript(int startingHealth, int maxHealth)
     {
         if (maxHealth < startingHealth)
         {
@@ -18,19 +18,19 @@ public class HealthScript
     }
 
     // change health back to max value
-    public void setHealthToMax()
+    public void SetHealthToMax()
     {
         currentHealth = maxHealth;
     }
 
     // decrease health by one. Returns false if character is dead, true if character is alive
-    public bool decrementHealth()
+    public bool DecrementHealth(int damage)
     {
-        currentHealth--;
+        currentHealth -= damage;
         if (currentHealth <= 0)
         {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 }

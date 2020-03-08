@@ -658,6 +658,11 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 941554003}
+    - target: {fileID: 5837017915548248074, guid: 63205d095d3ba544b90519c07c84cbcb,
+        type: 3}
+      propertyPath: homingStrength
+      value: 100
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 63205d095d3ba544b90519c07c84cbcb, type: 3}
 --- !u!114 &943451374 stripped
@@ -1035,7 +1040,7 @@ PrefabInstance:
     - target: {fileID: 5837017915548248074, guid: 63205d095d3ba544b90519c07c84cbcb,
         type: 3}
       propertyPath: homingStrength
-      value: 200
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 63205d095d3ba544b90519c07c84cbcb, type: 3}

@@ -21,7 +21,10 @@ public class MeleeAIAlly : NavAgent
     MeleeAIEnemy enemyTarget;
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
-    int health = 150;
+
+    HealthScript health = new HealthScript(10, 10);
+    //int health = 150;
+
     float nextAttackTime;
     // Start is called before the first frame update
     new void Start()
@@ -117,15 +120,13 @@ public class MeleeAIAlly : NavAgent
 
     public void TakeDamage(int damage)
     {
-        //Invincible for now
-        //health -= damage;
-        if (health <= 0)
+
+        if (health.DecrementHealth(damage))
         {
             state = AIState.Dying;
 
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
-
             enemyTarget.RemovePursuer(this);
             enemyTarget = null;
         }
@@ -149,7 +150,7 @@ public class MeleeAIAlly : NavAgent
             //Attack enemy AI
             MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
-            enemyAI.TakeDamage(20);
+            enemyAI.TakeDamage(1);
         }
     }
 }

@@ -84,11 +84,7 @@ public class Zombie : MonoBehaviour
                         matchStrength * (totVel.normalized - currVelocityDir) +
                         groupStrength * totPos.normalized +
                         homingStrength * playerDir.normalized;
-        Debug.Log(playerDir);
-        Debug.Log(closeDir);
-        Debug.Log(totVel);
-        Debug.Log(currVelocityDir);
-        Debug.Log(totPos);
+
         rb.AddForce(force);
     }
 
