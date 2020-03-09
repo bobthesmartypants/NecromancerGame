@@ -22,10 +22,10 @@ public class MeleeAIAlly : NavAgent
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
 
-    HealthScript health = new HealthScript(10, 10);
-    //int health = 150;
-
     float nextAttackTime;
+
+    HealthBar healthBar;
+
     // Start is called before the first frame update
     new void Start()
     {
@@ -41,6 +41,8 @@ public class MeleeAIAlly : NavAgent
 
         speed = 15.0f;
         target = master;
+
+        healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
     }
 
     public void ExecuteState()
@@ -120,11 +122,12 @@ public class MeleeAIAlly : NavAgent
 
     public void TakeDamage(int damage)
     {
-        int currentHealth = health.GetCurrentHealth();
-        if (health.DecrementHealth(damage) && currentHealth > 0)
+        int currentHealth = healthBar.GetCurrentHealth();
+        
+        if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-
+            
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
             enemyTarget.RemovePursuer(this);

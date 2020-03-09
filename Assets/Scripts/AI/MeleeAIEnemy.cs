@@ -24,9 +24,10 @@ public class MeleeAIEnemy : NavAgent
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 2.0f;
 
-    HealthScript health = new HealthScript(5, 5);
-    //int health = 100;
+    HealthBar healthBar;
     float nextAttackTime;
+
+    
 
     // Start is called before the first frame update
     new void Start()
@@ -35,6 +36,8 @@ public class MeleeAIEnemy : NavAgent
         nextAttackTime = Time.time;
         speed = 12.0f;
         state = AIState.NavigatingToPlayer;
+        healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
+
     }
 
     public void ExecuteState()
@@ -121,8 +124,8 @@ public class MeleeAIEnemy : NavAgent
 
     public void TakeDamage(int damage)
     {
-        int currentHealth = health.GetCurrentHealth();
-        if (health.DecrementHealth(damage) && currentHealth > 0)
+        int currentHealth = healthBar.GetCurrentHealth();
+        if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
 

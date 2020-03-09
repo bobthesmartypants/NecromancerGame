@@ -31,7 +31,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 149449475218534348}
-  - {fileID: 6824926545278075903}
+  - {fileID: 3533203126843161247}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -163,7 +163,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1001 &7260289591618603954
+--- !u!1001 &828325764800885458
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -338,7 +338,7 @@ PrefabInstance:
     - target: {fileID: 4212757236114229325, guid: fe861f3f4949df14a8510991e914ad44,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 3.567
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4212757236114229325, guid: fe861f3f4949df14a8510991e914ad44,
         type: 3}
@@ -374,11 +374,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Pivot.y
       value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4212757236114229326, guid: fe861f3f4949df14a8510991e914ad44,
-        type: 3}
-      propertyPath: healthColor
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4212757236114229361, guid: fe861f3f4949df14a8510991e914ad44,
         type: 3}
@@ -485,11 +480,16 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4212757234854385987, guid: fe861f3f4949df14a8510991e914ad44,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.00024986267
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fe861f3f4949df14a8510991e914ad44, type: 3}
---- !u!224 &6824926545278075903 stripped
+--- !u!224 &3533203126843161247 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4212757236114229325, guid: fe861f3f4949df14a8510991e914ad44,
     type: 3}
-  m_PrefabInstance: {fileID: 7260289591618603954}
+  m_PrefabInstance: {fileID: 828325764800885458}
   m_PrefabAsset: {fileID: 0}
