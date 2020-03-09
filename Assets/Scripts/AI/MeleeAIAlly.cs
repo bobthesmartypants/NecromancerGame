@@ -21,6 +21,7 @@ public class MeleeAIAlly : NavAgent
     MeleeAIEnemy enemyTarget;
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
+    float HIT_STRENGTH = 20.0f;
 
     float nextAttackTime;
 
@@ -116,15 +117,23 @@ public class MeleeAIAlly : NavAgent
 
     public override void MoveAgent(Vector3 heading)
     {
-        transform.Translate(heading * Time.deltaTime, Space.World);
-        Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
-        //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
-        //Smooth movement
-        desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
-        Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
+        if (!overrideNav)
+        {
+            rb.velocity = heading;
+            //transform.Translate(heading * Time.deltaTime, Space.World);
+            Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
+            //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
+            //Smooth movement
+            desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+            Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
+        }
+        else
+        {
+            desiredHeading = rb.velocity;
+        }
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Vector3 knockbackDir)
     {
         int currentHealth = healthBar.GetCurrentHealth();
         
@@ -140,6 +149,12 @@ public class MeleeAIAlly : NavAgent
                 enemyTarget.RemovePursuer(this);
                 enemyTarget = null;
             }
+        }
+        else
+        {
+            //Add knockback to AI
+            rb.AddForce(damage * knockbackDir, ForceMode.Impulse);
+            StartCoroutine(PauseNav(0.1f));
         }
     }
 
@@ -162,7 +177,9 @@ public class MeleeAIAlly : NavAgent
             MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
             //nextAttackTime = Time.time + 0.5f;
-            enemyAI.TakeDamage(1);
+
+            Vector3 knockbackDir = (enemyAI.transform.position - this.transform.position).normalized;
+            enemyAI.TakeDamage(1, HIT_STRENGTH * knockbackDir);
         }
     }
 }

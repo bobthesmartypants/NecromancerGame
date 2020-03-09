@@ -2103,6 +2103,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: resurrection_cylinder
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 389348d131ab7fc4991dead2d91b01cc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 389348d131ab7fc4991dead2d91b01cc, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.404876

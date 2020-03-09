@@ -15,7 +15,7 @@ public class MeleeAIEnemy : NavAgent
     AIState state;
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
-    
+    float HIT_STRENGTH = 20.0f;
     
 
     //All the ally AI that are pursuing this enemy
@@ -27,7 +27,6 @@ public class MeleeAIEnemy : NavAgent
     HealthBar healthBar;
     float nextAttackTime;
 
-    
 
     // Start is called before the first frame update
     new void Start()
@@ -37,7 +36,7 @@ public class MeleeAIEnemy : NavAgent
         speed = 12.0f;
         state = AIState.NavigatingToPlayer;
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
-
+        
     }
 
     public void ExecuteState()
@@ -98,13 +97,22 @@ public class MeleeAIEnemy : NavAgent
 
     public override void MoveAgent(Vector3 heading)
     {
-        transform.Translate(heading * Time.deltaTime, Space.World);
-        Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
-        //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
-        //Smooth movement
-        desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
-        Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
-
+        if (!overrideNav)
+        {
+            rb.velocity = heading;
+            //transform.Translate(heading * Time.deltaTime, Space.World);
+            Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
+            //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
+            //Smooth movement
+            desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+            Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
+        }
+        else
+        {
+            desiredHeading = rb.velocity;
+        }
+        
+        
     }
 
     public void AddPursuer(MeleeAIAlly ally)
@@ -122,7 +130,7 @@ public class MeleeAIEnemy : NavAgent
         
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Vector3 knockbackDir)
     {
         int currentHealth = healthBar.GetCurrentHealth();
         if (healthBar.DecrementHealth(damage) && currentHealth > 0)
@@ -137,9 +145,14 @@ public class MeleeAIEnemy : NavAgent
             }
             pursuers = new List<MeleeAIAlly>();
         }
+        else
+        {
+            //Add knockback to AI
+            rb.AddForce(damage * knockbackDir, ForceMode.Impulse);
+            StartCoroutine(PauseNav(0.1f));
+        }
     }
 
-    
     //This gets called before Update functions.
     private void OnTriggerStay(Collider other)
     {
@@ -149,7 +162,8 @@ public class MeleeAIEnemy : NavAgent
             MeleeAIAlly allyAI = other.gameObject.GetComponent<MeleeAIAlly>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
             //nextAttackTime = Time.time + 0.5f;
-            allyAI.TakeDamage(1);
+            Vector3 knockbackDir = (allyAI.transform.position - this.transform.position).normalized;
+            allyAI.TakeDamage(1, HIT_STRENGTH * knockbackDir);
         }
     }
 }

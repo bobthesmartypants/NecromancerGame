@@ -15,6 +15,9 @@ public class NavAgent : MonoBehaviour
     public List<HalfPlane> ORCAHalfPlanes;
     public Vector3 desiredHeading;
 
+    protected Rigidbody rb;
+    protected bool overrideNav = false;
+
 
     // Start is called before the first frame update
     protected void Start()
@@ -25,11 +28,20 @@ public class NavAgent : MonoBehaviour
         transform.forward = -Camera.main.transform.forward;
         transform.up = Camera.main.transform.up;
         pathPoints = new List<Vector3>();
+
+        rb = GetComponent<Rigidbody>();
     }
 
     public virtual void MoveAgent(Vector3 heading)
     {
 
+    }
+
+    protected IEnumerator PauseNav(float t)
+    {
+        overrideNav = true;
+        yield return new WaitForSeconds(t);
+        overrideNav = false;
     }
 }
 
