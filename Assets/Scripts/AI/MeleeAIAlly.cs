@@ -162,7 +162,9 @@ public class MeleeAIAlly : NavAgent
             MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
             //nextAttackTime = Time.time + 0.5f;
-            enemyAI.TakeDamage(1);
+            // vec is the vector from this to the attacked object
+            Vector3 vec = this.transform.position - enemyAI.transform.position;
+            enemyAI.TakeDamage(1, vec);
         }
     }
 }
