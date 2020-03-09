@@ -55,8 +55,11 @@ public class MeleeAIAlly : NavAgent
                 {
                     state = AIState.ReturningToMaster;
                     target = master;
-                    enemyTarget.RemovePursuer(this);
-                    enemyTarget = null;
+                    if (enemyTarget)
+                    {
+                        enemyTarget.RemovePursuer(this);
+                        enemyTarget = null;
+                    }
                 }
                 break;
             case AIState.ReturningToMaster:
@@ -80,7 +83,7 @@ public class MeleeAIAlly : NavAgent
                         nextWanderTime = Time.time + Random.Range(3.0f, 8.0f);
                         Vector2 randPos2d = WANDER_RADIUS * Random.insideUnitCircle;
                         target.position = master.position + new Vector3(randPos2d.x, 0.0f, randPos2d.y);
-                    }
+                    }                    
                 }
                 break;
             case AIState.Dying:
@@ -105,6 +108,7 @@ public class MeleeAIAlly : NavAgent
 
     public void TargetWasKilled()
     {
+        Debug.Log("target killed");
         state = AIState.SearchingForEnemy;
         enemyTarget = null;
         target = wanderingTransform;
@@ -127,11 +131,15 @@ public class MeleeAIAlly : NavAgent
         if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-            
+            Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
-            enemyTarget.RemovePursuer(this);
-            enemyTarget = null;
+
+            if (enemyTarget)
+            {
+                enemyTarget.RemovePursuer(this);
+                enemyTarget = null;
+            }
         }
     }
 
@@ -153,6 +161,7 @@ public class MeleeAIAlly : NavAgent
             //Attack enemy AI
             MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
+            //nextAttackTime = Time.time + 0.5f;
             enemyAI.TakeDamage(1);
         }
     }

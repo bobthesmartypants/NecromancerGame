@@ -128,13 +128,14 @@ public class MeleeAIEnemy : NavAgent
         if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-
+            Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
             foreach (MeleeAIAlly friendly in pursuers)
             {
                 friendly.TargetWasKilled();
             }
+            pursuers = new List<MeleeAIAlly>();
         }
     }
 
@@ -147,6 +148,7 @@ public class MeleeAIEnemy : NavAgent
             //Attack ally AI
             MeleeAIAlly allyAI = other.gameObject.GetComponent<MeleeAIAlly>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
+            //nextAttackTime = Time.time + 0.5f;
             allyAI.TakeDamage(1);
         }
     }
