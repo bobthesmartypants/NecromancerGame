@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4162719336397576859}
-  - component: {fileID: 75306869786824981}
   m_Layer: 0
   m_Name: Hand
   m_TagString: Untagged
@@ -31,25 +30,6 @@ Transform:
   m_Father: {fileID: 7162238716310289475}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &75306869786824981
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 157864860687101418}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &2839147207488191548
 GameObject:
   m_ObjectHideFlags: 0
@@ -93,6 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c06fa794c80fe946a1193ae5a022cb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  zombies: []
   agents: []
   allies: []
   enemies: []
@@ -146,6 +127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radius: 0
   velocity: {x: 0, y: 0, z: 0}
+  sword: {fileID: 0}
 --- !u!54 &8613870405653588874
 Rigidbody:
   m_ObjectHideFlags: 0

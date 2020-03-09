@@ -5,6 +5,15 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
+
+    private const float HAND_DISTANCE = 1.4f;
+    private const float HAND_HEIGHT = 1.5f;
+    private const float ATTACK_RECHARGE = 1f;
+
+    private bool canAttack;
+
+    private Animator AttackAnim;
+
     public float radius;
 
     /*
@@ -13,6 +22,7 @@ public class PlayerMovementController : MonoBehaviour
         get { return rb.velocity; }
     }
     */
+
     public Vector3 velocity;
 
     float playerSpeed = 15.0f;
@@ -26,7 +36,7 @@ public class PlayerMovementController : MonoBehaviour
     Animator animator;
     Rigidbody rb;
 
-
+    Transform hand;
 
     // Start is called before the first frame update
     void Start()
@@ -44,29 +54,49 @@ public class PlayerMovementController : MonoBehaviour
         transform.up = Camera.main.transform.up;
 
         //Attach sword to hand
-        Transform hand = transform.Find("Hand");
+        hand = transform.Find("Hand");
         sword.transform.parent = hand;
         sword.transform.localPosition = Vector3.zero;
         sword.transform.localRotation = Quaternion.identity;
+
+        AttackAnim = sword.GetComponent<Animator>();
+
+        canAttack = true;
     }
 
     // Update is called once per frame
     void Update()
+    {
+
+        if (Input.GetMouseButton(0) && canAttack)
+        {
+            equipedMagic.Cast();
+            AttackAnim.SetTrigger("Attack");
+            canAttack = false;
+            StartCoroutine("RechargeAttack");
+        }
+
+    }
+
+    IEnumerator RechargeAttack()
+    {
+        yield return new WaitForSeconds(ATTACK_RECHARGE);
+        canAttack = true;
+    }
+
+    private void FixedUpdate()
     {
         moveHorizontal = Input.GetAxisRaw("Horizontal");
         moveVertical = Input.GetAxisRaw("Vertical");
         relMousePos = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
         relMousePos = new Vector3(relMousePos.x, relMousePos.y, 0.0f).normalized;
 
-        if (Input.GetMouseButton(0))
-        {
-            equipedMagic.Cast();
-        }
+        // Set hand position
+        hand.transform.position = transform.position + new Vector3(relMousePos.x, HAND_HEIGHT, relMousePos.y) * HAND_DISTANCE;
 
-    }
+        // Set sword rotation
+        sword.SetRotation(Vector3.SignedAngle(relMousePos, Vector3.right, Vector3.forward));
 
-    private void FixedUpdate()
-    {
         velocity = Vector3.zero;
         Vector3 movement = moveVertical * new Vector3(0.0f, 0.0f, 1.0f) + moveHorizontal * new Vector3(1.0f, 0.0f, 0.0f);
         if (movement.magnitude > 1.0f)
