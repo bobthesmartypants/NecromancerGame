@@ -15,7 +15,8 @@ public class MeleeAIEnemy : NavAgent
     AIState state;
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
-    
+
+    public const float DESPAWN_TIME = 5.0f; //The time it takes for an enemy to despawn after it dies 
     
 
     //All the ally AI that are pursuing this enemy
@@ -83,7 +84,7 @@ public class MeleeAIEnemy : NavAgent
                 state = AIState.Dead;
                 break;
             case AIState.Dead:
-                //In this state, the enemy can potentially be revived by the player. If we wait too long (5 s), the enemy
+                //In this state, the enemy can potentially be revived by the player. If we wait DESPAWN_TIME, the enemy
                 //will despawn
                 AIManager.Instance.agents.Remove(this);
                 //Removing from enemies list will prevent this enemy from having its state executed again
@@ -142,7 +143,7 @@ public class MeleeAIEnemy : NavAgent
     }
 
     IEnumerator Despawn(){
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(DESPAWN_TIME);
         Destroy(this.gameObject);
     }
 
