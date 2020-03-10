@@ -80,17 +80,15 @@ public class MeleeAIEnemy : NavAgent
                 break;
             case AIState.Dying:
                 //Play dying animation with coroutine maybe
-                state = AIState.Despawning;
+                state = AIState.Dead;
                 break;
             case AIState.Dead:
-                //In this state, the enemy can potentially be revived by the player. If we wait too long, the enemy
+                //In this state, the enemy can potentially be revived by the player. If we wait too long (5 s), the enemy
                 //will despawn
-                break;
-            case AIState.Despawning:
                 AIManager.Instance.agents.Remove(this);
                 //Removing from enemies list will prevent this enemy from having its state executed again
                 AIManager.Instance.enemies.Remove(this);
-                Destroy(this.gameObject);
+                StartCoroutine("Despawn");
                 break;
         }
     }
@@ -122,6 +120,10 @@ public class MeleeAIEnemy : NavAgent
         
     }
 
+    public bool IsDead(){
+        return state == AIState.Dead;
+    }
+
     public void TakeDamage(int damage)
     {
         int currentHealth = healthBar.GetCurrentHealth();
@@ -129,14 +131,19 @@ public class MeleeAIEnemy : NavAgent
         {
             state = AIState.Dying;
             Debug.Log("DYING " + gameObject.name);
-            //Disable collider to avoid future triggers
-            gameObject.GetComponent<Collider>().enabled = false;
+            //This collider is still necessary for resurrection
+            //gameObject.GetComponent<Collider>().enabled = false;
             foreach (MeleeAIAlly friendly in pursuers)
             {
                 friendly.TargetWasKilled();
             }
             pursuers = new List<MeleeAIAlly>();
         }
+    }
+
+    IEnumerator Despawn(){
+        yield return new WaitForSeconds(5);
+        Destroy(this.gameObject);
     }
 
     

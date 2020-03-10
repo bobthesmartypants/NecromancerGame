@@ -26,6 +26,8 @@ public class PlayerMovementController : MonoBehaviour
     Animator animator;
     Rigidbody rb;
 
+    public ResurrectionCircle resCircle;
+
 
 
     // Start is called before the first frame update
@@ -61,6 +63,11 @@ public class PlayerMovementController : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             equipedMagic.Cast();
+        }
+
+        if (Input.GetMouseButton(1))
+        {
+            resCircle.ResurrectEnemies(transform);
         }
 
     }
