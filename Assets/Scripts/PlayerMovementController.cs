@@ -5,11 +5,15 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
+    // FOR DEBUGGING
+    private const bool DEBUG = true;
+
     #region Constants
     private const float HAND_DISTANCE = 1.4f; // Distance of player's hand from player's body
     private const float HAND_HEIGHT = 1.5f; // Height of player's hand from ground
     private const float ATTACK_RECHARGE = 1f; // Time it takes for player to recharge its attack
     private const float PLAYER_SPEED = 15.0f; // Player running speed
+    private const float HITBOX_SIZE = 10f; // Attack hitbox radius
     #endregion
 
     #region Private Variables
@@ -25,6 +29,9 @@ public class PlayerMovementController : MonoBehaviour
 
     // Reference to ResurrectionCircle script
     private ResurrectionCircle resCircle;
+
+    // Reference to HitDetector script
+    private HitDetector hitDetector;
 
     // Current horizontal and vertical input
     private float moveHorizontal;
@@ -82,6 +89,12 @@ public class PlayerMovementController : MonoBehaviour
         // Initialize resurrection circle reference
         resCircle = gameObject.GetComponentInChildren<ResurrectionCircle>();
 
+        // Initiaize hit detector reference
+        hitDetector = gameObject.GetComponentInChildren<HitDetector>();
+
+        // Initialize hit detector range
+        hitDetector.transform.localScale = new Vector3(HITBOX_SIZE, HITBOX_SIZE, 1);
+
         // Set initial attack state to true
         canAttack = true;
     }
@@ -92,7 +105,10 @@ public class PlayerMovementController : MonoBehaviour
         // If left button clicked and currently can attack
         if (Input.GetMouseButton(0) && canAttack)
         {
-            equippedMagic.Cast(); // Cast the current magic
+            // equippedMagic.Cast(); // Cast the current magic TODO: make this obsolete?
+
+            DoAttack();
+
             AttackAnim.SetTrigger("Attack"); // Do attack animation
             canAttack = false; // Disable attack
             StartCoroutine("RechargeAttack"); // Reenable attack after recharged
@@ -105,6 +121,22 @@ public class PlayerMovementController : MonoBehaviour
             resCircle.ResurrectEnemies(transform);
         }
 
+    }
+
+    private void DoAttack()
+    {
+        if (DEBUG) Debug.Log("Doing attack");
+
+        foreach (Collider other in hitDetector.GetColliding())
+        {
+            
+            if (other.gameObject.GetComponent<MeleeAIEnemy>())
+            {
+                MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
+
+                enemyAI.TakeDamage(1); 
+            }
+        }
     }
     
     // Sets canAttack to true after ATTACK_RECHARGE seconds
