@@ -22,10 +22,10 @@ public class MeleeAIAlly : NavAgent
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
 
-    HealthScript health = new HealthScript(10, 10);
-    //int health = 150;
-
     float nextAttackTime;
+
+    HealthBar healthBar;
+
     // Start is called before the first frame update
     new void Start()
     {
@@ -41,6 +41,8 @@ public class MeleeAIAlly : NavAgent
 
         speed = 15.0f;
         target = master;
+
+        healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
     }
 
     public void ExecuteState()
@@ -53,8 +55,11 @@ public class MeleeAIAlly : NavAgent
                 {
                     state = AIState.ReturningToMaster;
                     target = master;
-                    enemyTarget.RemovePursuer(this);
-                    enemyTarget = null;
+                    if (enemyTarget)
+                    {
+                        enemyTarget.RemovePursuer(this);
+                        enemyTarget = null;
+                    }
                 }
                 break;
             case AIState.ReturningToMaster:
@@ -78,7 +83,7 @@ public class MeleeAIAlly : NavAgent
                         nextWanderTime = Time.time + Random.Range(3.0f, 8.0f);
                         Vector2 randPos2d = WANDER_RADIUS * Random.insideUnitCircle;
                         target.position = master.position + new Vector3(randPos2d.x, 0.0f, randPos2d.y);
-                    }
+                    }                    
                 }
                 break;
             case AIState.Dying:
@@ -103,6 +108,7 @@ public class MeleeAIAlly : NavAgent
 
     public void TargetWasKilled()
     {
+        Debug.Log("target killed");
         state = AIState.SearchingForEnemy;
         enemyTarget = null;
         target = wanderingTransform;
@@ -120,15 +126,20 @@ public class MeleeAIAlly : NavAgent
 
     public void TakeDamage(int damage)
     {
-
-        if (health.DecrementHealth(damage))
+        int currentHealth = healthBar.GetCurrentHealth();
+        
+        if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-
+            Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
-            enemyTarget.RemovePursuer(this);
-            enemyTarget = null;
+
+            if (enemyTarget)
+            {
+                enemyTarget.RemovePursuer(this);
+                enemyTarget = null;
+            }
         }
     }
 
@@ -150,6 +161,7 @@ public class MeleeAIAlly : NavAgent
             //Attack enemy AI
             MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
+            //nextAttackTime = Time.time + 0.5f;
             enemyAI.TakeDamage(1);
         }
     }

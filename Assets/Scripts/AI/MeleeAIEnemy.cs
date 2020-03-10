@@ -24,9 +24,10 @@ public class MeleeAIEnemy : NavAgent
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 2.0f;
 
-    HealthScript health = new HealthScript(5, 5);
-    //int health = 100;
+    HealthBar healthBar;
     float nextAttackTime;
+
+    
 
     // Start is called before the first frame update
     new void Start()
@@ -35,6 +36,8 @@ public class MeleeAIEnemy : NavAgent
         nextAttackTime = Time.time;
         speed = 12.0f;
         state = AIState.NavigatingToPlayer;
+        healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
+
     }
 
     public void ExecuteState()
@@ -77,17 +80,15 @@ public class MeleeAIEnemy : NavAgent
                 break;
             case AIState.Dying:
                 //Play dying animation with coroutine maybe
-                state = AIState.Despawning;
+                state = AIState.Dead;
                 break;
             case AIState.Dead:
-                //In this state, the enemy can potentially be revived by the player. If we wait too long, the enemy
+                //In this state, the enemy can potentially be revived by the player. If we wait too long (5 s), the enemy
                 //will despawn
-                break;
-            case AIState.Despawning:
                 AIManager.Instance.agents.Remove(this);
                 //Removing from enemies list will prevent this enemy from having its state executed again
                 AIManager.Instance.enemies.Remove(this);
-                Destroy(this.gameObject);
+                StartCoroutine("Despawn");
                 break;
         }
     }
@@ -119,19 +120,30 @@ public class MeleeAIEnemy : NavAgent
         
     }
 
+    public bool IsDead(){
+        return state == AIState.Dead;
+    }
+
     public void TakeDamage(int damage)
     {
-        if (health.DecrementHealth(damage))
+        int currentHealth = healthBar.GetCurrentHealth();
+        if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-
-            //Disable collider to avoid future triggers
-            gameObject.GetComponent<Collider>().enabled = false;
+            Debug.Log("DYING " + gameObject.name);
+            //This collider is still necessary for resurrection
+            //gameObject.GetComponent<Collider>().enabled = false;
             foreach (MeleeAIAlly friendly in pursuers)
             {
                 friendly.TargetWasKilled();
             }
+            pursuers = new List<MeleeAIAlly>();
         }
+    }
+
+    IEnumerator Despawn(){
+        yield return new WaitForSeconds(5);
+        Destroy(this.gameObject);
     }
 
     
@@ -143,6 +155,7 @@ public class MeleeAIEnemy : NavAgent
             //Attack ally AI
             MeleeAIAlly allyAI = other.gameObject.GetComponent<MeleeAIAlly>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
+            //nextAttackTime = Time.time + 0.5f;
             allyAI.TakeDamage(1);
         }
     }

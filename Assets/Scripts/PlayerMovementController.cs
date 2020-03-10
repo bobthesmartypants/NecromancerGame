@@ -38,6 +38,9 @@ public class PlayerMovementController : MonoBehaviour
 
     Transform hand;
 
+    public ResurrectionCircle resCircle;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -74,6 +77,11 @@ public class PlayerMovementController : MonoBehaviour
             AttackAnim.SetTrigger("Attack");
             canAttack = false;
             StartCoroutine("RechargeAttack");
+        }
+
+        if (Input.GetMouseButton(1))
+        {
+            resCircle.ResurrectEnemies(transform);
         }
 
     }
