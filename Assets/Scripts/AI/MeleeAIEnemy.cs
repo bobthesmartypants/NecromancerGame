@@ -36,6 +36,7 @@ public class MeleeAIEnemy : NavAgent
         state = AIState.NavigatingToPlayer;
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
         
+        
     }
 
     public void ExecuteState()
@@ -144,7 +145,7 @@ public class MeleeAIEnemy : NavAgent
             state = AIState.Dying;
             Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
-            //gameObject.GetComponent<Collider>().enabled = false;
+            gameObject.GetComponent<Collider>().enabled = false;
             foreach (MeleeAIAlly friendly in pursuers)
             {
                 friendly.TargetWasKilled();

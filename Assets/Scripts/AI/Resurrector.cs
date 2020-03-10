@@ -22,6 +22,9 @@ public class Resurrector : MonoBehaviour
         GetComponent<MeshRenderer>().enabled = false;
         resurrectHoldTime = Time.time;
         state = ResState.Idle;
+
+        Vector3 meshExtents = GetComponent<MeshRenderer>().bounds.extents;
+        transform.localScale = radius * meshExtents;
     }
 
     // Update is called once per frame
@@ -61,19 +64,20 @@ public class Resurrector : MonoBehaviour
 
     public void ResurrectEnemies()
     {
-        int layerMask = 1 << 9;
+        int layerMask = 1 << 11;
         Collider[] collidersInRange = Physics.OverlapSphere(transform.parent.position, radius, layerMask);
-        foreach (Collider enemyCollider in collidersInRange)
+        foreach (Collider resurrecteeCollider in collidersInRange)
         {
-            MeleeAIEnemy enemyAI = enemyCollider.gameObject.GetComponent<MeleeAIEnemy>();
+            Transform parent = resurrecteeCollider.transform.parent;
+            MeleeAIEnemy enemyAI = parent.gameObject.GetComponent<MeleeAIEnemy>();
             if (enemyAI != null && enemyAI.IsDead())
             {
                 MeleeAIAlly allyAI = (MeleeAIAlly)Instantiate(Resources.Load("Prefabs/Ally", typeof(MeleeAIAlly)));
-                allyAI.transform.position = enemyCollider.gameObject.transform.position;
-                allyAI.transform.rotation = enemyCollider.gameObject.transform.rotation;
+                allyAI.transform.position = parent.position;
+                allyAI.transform.rotation = parent.rotation;
                 allyAI.master = transform.parent;
                 allyAI.target = transform.parent;
-                Destroy(enemyCollider.gameObject);
+                Destroy(parent.gameObject);
                 AIManager.Instance.allies.Add(allyAI);
                 AIManager.Instance.agents.Add(allyAI);
             }
