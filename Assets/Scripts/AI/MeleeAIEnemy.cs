@@ -22,11 +22,10 @@ public class MeleeAIEnemy : NavAgent
     List<MeleeAIAlly> pursuers = new List<MeleeAIAlly>();
 
     //How much more the enemies prefer attacking the player over allies
-    static float PLAYER_PREFERENCE = 2.0f;
+    static float PLAYER_PREFERENCE = 1.5f;
 
     HealthBar healthBar;
     float nextAttackTime;
-
 
     // Start is called before the first frame update
     new void Start()
@@ -79,21 +78,28 @@ public class MeleeAIEnemy : NavAgent
                 break;
             case AIState.Dying:
                 //Play dying animation with coroutine maybe
-                state = AIState.Despawning;
+                state = AIState.Dead;
                 break;
             case AIState.Dead:
                 //In this state, the enemy can potentially be revived by the player. If we wait too long, the enemy
                 //will despawn
+                AIManager.Instance.agents.Remove(this);
+                AIManager.Instance.enemies.Remove(this);
+                rb.velocity = Vector3.zero;
                 break;
             case AIState.Despawning:
-                AIManager.Instance.agents.Remove(this);
+                //AIManager.Instance.agents.Remove(this);
                 //Removing from enemies list will prevent this enemy from having its state executed again
-                AIManager.Instance.enemies.Remove(this);
-                Destroy(this.gameObject);
+                //AIManager.Instance.enemies.Remove(this);
+                //Destroy(this.gameObject);
                 break;
         }
     }
 
+    public bool IsDead()
+    {
+        return state == AIState.Dead;
+    }
 
     public override void MoveAgent(Vector3 heading)
     {
@@ -138,12 +144,13 @@ public class MeleeAIEnemy : NavAgent
             state = AIState.Dying;
             Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
-            gameObject.GetComponent<Collider>().enabled = false;
+            //gameObject.GetComponent<Collider>().enabled = false;
             foreach (MeleeAIAlly friendly in pursuers)
             {
                 friendly.TargetWasKilled();
             }
             pursuers = new List<MeleeAIAlly>();
+            
         }
         else
         {

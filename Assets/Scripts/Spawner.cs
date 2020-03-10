@@ -10,7 +10,6 @@ public class Spawner : MonoBehaviour
     void Start()
     {
         nextSpawnTime = Time.time;
-        
     }
 
     // Update is called once per frame
