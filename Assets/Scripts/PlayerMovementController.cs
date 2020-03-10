@@ -14,6 +14,8 @@ public class PlayerMovementController : MonoBehaviour
 
     private Animator AttackAnim;
 
+    private ResurrectionCircle resCircle;
+
     public float radius;
 
     /*
@@ -38,8 +40,6 @@ public class PlayerMovementController : MonoBehaviour
 
     Transform hand;
 
-    public ResurrectionCircle resCircle;
-
 
     // Start is called before the first frame update
     void Start()
@@ -63,6 +63,8 @@ public class PlayerMovementController : MonoBehaviour
         sword.transform.localRotation = Quaternion.identity;
 
         AttackAnim = sword.GetComponent<Animator>();
+
+        resCircle = gameObject.GetComponentInChildren<ResurrectionCircle>();
 
         canAttack = true;
     }

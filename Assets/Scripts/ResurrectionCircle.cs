@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class ResurrectionCircle : MonoBehaviour
 {
-    public float radius = 10f;
+    // FOR DEBUGGING
+    private const bool DEBUG = true;
 
+    // Radius around the player where resurrection can happen
+    private float RESURRECTION_RADIUS = 10f;
+
+    // Ally that will be resurrected. TODO: depreciate this and resurrect an ally that is the equivalent of the enemy being resurrected
     public GameObject ally;
-
-    private Transform playerTransform;
     
     private bool readyToRes = false;
 
@@ -25,19 +28,31 @@ public class ResurrectionCircle : MonoBehaviour
     }
 
     public void ResurrectEnemies(Transform playerTransform){
-        Collider[] collidersInRange = Physics.OverlapSphere(playerTransform.position, radius);
+
+        if (DEBUG) Debug.Log("attempting resurrection!");
+
+        // Get all colliders within a certain radius sphere
+        Collider[] collidersInRange = Physics.OverlapSphere(playerTransform.position, RESURRECTION_RADIUS);
         foreach (Collider enemyCollider in collidersInRange)
         {
+            // Get enemy AI
             MeleeAIEnemy enemyAI = enemyCollider.gameObject.GetComponent<MeleeAIEnemy>();
             if (enemyAI != null && enemyAI.IsDead()){
-                Object newAllyObject = Instantiate(ally, enemyCollider.gameObject.transform.position, enemyCollider.gameObject.transform.rotation);
-                GameObject newAlly = (GameObject) newAllyObject;
+
+                // Create a new ally
+                GameObject newAlly = Instantiate(ally, enemyCollider.gameObject.transform.position, enemyCollider.gameObject.transform.rotation) as GameObject;
+                
+                // Get ally AI and set master and target to player transform
                 MeleeAIAlly newAllyAI = newAlly.GetComponent<MeleeAIAlly>();
                 newAllyAI.master = playerTransform;
                 newAllyAI.target = playerTransform;
+
+                // Remove enemy from AI manager
                 AIManager.Instance.enemies.Remove(enemyAI);
                 AIManager.Instance.agents.Remove(enemyAI);
                 Destroy(enemyCollider.gameObject);
+
+                // Add ally to AI manager
                 AIManager.Instance.allies.Add(newAllyAI);
                 AIManager.Instance.agents.Add(newAllyAI);
             }

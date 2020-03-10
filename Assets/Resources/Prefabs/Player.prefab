@@ -78,6 +78,50 @@ MonoBehaviour:
   allies: []
   enemies: []
   playerAgent: {fileID: 0}
+--- !u!1 &3703664097808439191
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1213839656243924471}
+  - component: {fileID: 1918110934088883583}
+  m_Layer: 0
+  m_Name: ResCircle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1213839656243924471
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3703664097808439191}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 7162238716310289475}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1918110934088883583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3703664097808439191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b165575613b07d44a0dcb23c9d03c72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ally: {fileID: 1036229212834742052, guid: 7eccc8dbe3dbe6746b016b8a783c3dc6, type: 3}
 --- !u!1 &7162238716310289533
 GameObject:
   m_ObjectHideFlags: 0
@@ -110,6 +154,7 @@ Transform:
   - {fileID: 7162238716402732673}
   - {fileID: 4406031573204453702}
   - {fileID: 4162719336397576859}
+  - {fileID: 1213839656243924471}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
