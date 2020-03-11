@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.Events;
 
 public class MeleeAIAlly : NavAgent
 {
@@ -9,7 +9,7 @@ public class MeleeAIAlly : NavAgent
     {
         AttackingEnemy,
         ReturningToMaster,
-        SearchingForEnemy,
+        Patrolling,
         Dying,
         Despawning
     }
@@ -17,11 +17,12 @@ public class MeleeAIAlly : NavAgent
     public Transform master;
     Transform wanderingTransform;
 
-    //The enemy AI that this ally is targeting
-    MeleeAIEnemy enemyTarget;
     float nextWanderTime;
     float WANDER_RADIUS = 30.0f;
     float HIT_STRENGTH = 20.0f;
+
+    public UnityEvent deathEvent = new UnityEvent();
+    List<MeleeAIEnemy> nearbyEnemies = new List<MeleeAIEnemy>();
 
     float nextAttackTime;
 
@@ -44,9 +45,11 @@ public class MeleeAIAlly : NavAgent
         target = master;
 
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
+
+        InvokeRepeating("UpdateNearbyEnemies", 0.0f, 0.1f);
     }
 
-    public void ExecuteState()
+    void Update()
     {
         
         switch (state)
@@ -56,21 +59,16 @@ public class MeleeAIAlly : NavAgent
                 {
                     state = AIState.ReturningToMaster;
                     target = master;
-                    if (enemyTarget)
-                    {
-                        enemyTarget.RemovePursuer(this);
-                        enemyTarget = null;
-                    }
                 }
                 break;
             case AIState.ReturningToMaster:
                 if ((master.position - transform.position).magnitude < WANDER_RADIUS)
                 {
-                    state = AIState.SearchingForEnemy;
+                    state = AIState.Patrolling;
                     target = wanderingTransform;
                 }
                 break;
-            case AIState.SearchingForEnemy:
+            case AIState.Patrolling:
                 if ((master.position - transform.position).magnitude >= WANDER_RADIUS)
                 {
                     state = AIState.ReturningToMaster;
@@ -78,7 +76,6 @@ public class MeleeAIAlly : NavAgent
                 }
                 else
                 {
-                    AIManager.Instance.PutOnDispatchQueue(this);
                     if (Time.time > nextWanderTime)
                     {
                         nextWanderTime = Time.time + Random.Range(3.0f, 8.0f);
@@ -90,29 +87,11 @@ public class MeleeAIAlly : NavAgent
             case AIState.Dying:
                 //Play dying animation with coroutine maybe
                 state = AIState.Despawning;
-                break;
-            case AIState.Despawning:
-                AIManager.Instance.agents.Remove(this);
-                //Removing from enemies list will prevent this enemy from having its state executed again
-                AIManager.Instance.allies.Remove(this);
                 Destroy(this.gameObject);
                 break;
+            case AIState.Despawning:
+                break;
         }
-    }
-
-    public void AttackEnemy(MeleeAIEnemy enemyAI)
-    {
-        state = AIState.AttackingEnemy;
-        enemyTarget = enemyAI;
-        target = enemyAI.transform;
-    }
-
-    public void TargetWasKilled()
-    {
-        Debug.Log("target killed");
-        state = AIState.SearchingForEnemy;
-        enemyTarget = null;
-        target = wanderingTransform;
     }
 
     public override void MoveAgent(Vector3 heading)
@@ -124,7 +103,15 @@ public class MeleeAIAlly : NavAgent
             Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
             //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
             //Smooth movement
-            desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+            if (pathPoints.Count == 1)
+            {
+                desiredHeading = heading;
+                Vector3.SmoothDamp(transform.position, pathPoints[0], ref desiredHeading, 0.3f, speed);
+            }
+            else
+            {
+                desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+            }
             Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
         }
         else
@@ -140,15 +127,12 @@ public class MeleeAIAlly : NavAgent
         if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-            Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
-
-            if (enemyTarget)
-            {
-                enemyTarget.RemovePursuer(this);
-                enemyTarget = null;
-            }
+            deathEvent.Invoke();
+            CancelInvoke();
+            rb.velocity = Vector3.zero;
+            target = null;
         }
         else
         {
@@ -163,6 +147,46 @@ public class MeleeAIAlly : NavAgent
         if (wanderingTransform)
         {
             Destroy(wanderingTransform.gameObject);
+        }
+        
+    }
+
+    void UpdateNearbyEnemies()
+    {
+        
+        nearbyEnemies = new List<MeleeAIEnemy>();
+        Collider[] collidersInRange = Physics.OverlapSphere(transform.position, 15.0f, 1 << 9);
+        foreach(Collider enemyCollider in collidersInRange)
+        {
+            MeleeAIEnemy enemyAI = enemyCollider.gameObject.GetComponent<MeleeAIEnemy>();
+            if (!enemyAI.IsDead())
+            {
+                nearbyEnemies.Add(enemyAI);
+            }
+        }
+
+
+        if(nearbyEnemies.Count == 0)
+        {
+            state = AIState.Patrolling;
+            target = wanderingTransform;
+        }
+        else
+        {
+            //TODO: make enemies that are already surrounded by allies less desirable
+            Transform closestAgent = nearbyEnemies[0].transform;
+            float minDistance = Vector3.Distance(closestAgent.position, transform.position);
+            for (int i = 1; i < nearbyEnemies.Count; i++)
+            {
+                float dist = Vector3.Distance(nearbyEnemies[i].transform.position, transform.position);
+                if (dist < minDistance)
+                {
+                    closestAgent = nearbyEnemies[i].transform;
+                    minDistance = dist;
+                }
+            }
+            state = AIState.AttackingEnemy;
+            target = closestAgent;
         }
         
     }

@@ -78,25 +78,9 @@ public class Resurrector : MonoBehaviour
                 allyAI.master = transform.parent;
                 allyAI.target = transform.parent;
                 Destroy(parent.gameObject);
-                AIManager.Instance.allies.Add(allyAI);
-                AIManager.Instance.agents.Add(allyAI);
             }
         }
     }
-
-    /*
-    public void PrepareForResurrection()
-    {
-        StopCoroutine(resurrectionCoroutine);
-        
-        resurrectionCoroutine = StartCoroutine(ResurrectionAnimation());
-    }
-
-    public void CancelResurrection()
-    {
-        StopCoroutine(resurrectionCoroutine);
-    }
-    */
 
     IEnumerator ResurrectionAnimation()
     {

@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class MeleeAIEnemy : NavAgent
 {
     public enum AIState
     {
         Attacking,
-        NavigatingToPlayer,
         Dying,
         Dead,
         Despawning
@@ -16,10 +16,8 @@ public class MeleeAIEnemy : NavAgent
     public Transform playerTrans;
     float ATTACK_RADIUS = 30.0f;
     float HIT_STRENGTH = 20.0f;
-    
-
-    //All the ally AI that are pursuing this enemy
-    List<MeleeAIAlly> pursuers = new List<MeleeAIAlly>();
+    public UnityEvent deathEvent = new UnityEvent();
+    List<MeleeAIAlly> nearbyAllies = new List<MeleeAIAlly>();
 
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 1.5f;
@@ -33,49 +31,21 @@ public class MeleeAIEnemy : NavAgent
         base.Start();
         nextAttackTime = Time.time;
         speed = 12.0f;
-        state = AIState.NavigatingToPlayer;
+        state = AIState.Attacking;
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
-        
-        
+
+        //InvokeRepeating("UpdateNearbyAllies", 0.0f, 0.1f);
+
     }
 
-    public void ExecuteState()
+    void Update()
     {
         //Attack player
         switch (state)
         {
             case AIState.Attacking:
-                //Attack closest of the friendlies and player
-                Transform closestAgent = playerTrans;
-                float minDistance = Vector3.Distance(closestAgent.position, transform.position) / PLAYER_PREFERENCE;
-                foreach(MeleeAIAlly ally in AIManager.Instance.allies)
-                {
-                    float dist = Vector3.Distance(ally.transform.position, transform.position);
-                    if (dist < minDistance)
-                    {
-                        closestAgent = ally.transform;
-                        minDistance = dist;
-                    }
-                }
-                target = closestAgent;
-
-                if ((playerTrans.position - transform.position).magnitude >= ATTACK_RADIUS)
-                {
-                    state = AIState.NavigatingToPlayer;
-                    target = playerTrans;
-                    
-                }
-                //If enemy does not have any pursuers, put it on the queue so that it can be assigned some
-                else if(pursuers.Count == 0)
-                {
-                    AIManager.Instance.PutOnEnemyQueue(this);
-                }
-                break;
-            case AIState.NavigatingToPlayer:
-                if ((playerTrans.position - transform.position).magnitude < ATTACK_RADIUS)
-                {
-                    state = AIState.Attacking;
-                }
+                //Navigating to fight player
+                
                 break;
             case AIState.Dying:
                 //Play dying animation with coroutine maybe
@@ -84,15 +54,8 @@ public class MeleeAIEnemy : NavAgent
             case AIState.Dead:
                 //In this state, the enemy can potentially be revived by the player. If we wait too long, the enemy
                 //will despawn
-                AIManager.Instance.agents.Remove(this);
-                AIManager.Instance.enemies.Remove(this);
-                rb.velocity = Vector3.zero;
                 break;
             case AIState.Despawning:
-                //AIManager.Instance.agents.Remove(this);
-                //Removing from enemies list will prevent this enemy from having its state executed again
-                //AIManager.Instance.enemies.Remove(this);
-                //Destroy(this.gameObject);
                 break;
         }
     }
@@ -111,7 +74,17 @@ public class MeleeAIEnemy : NavAgent
             Vector3 curPos = new Vector3(transform.position.x, 0.1f, transform.position.z);
             //desiredHeading = TARGET_SPEED * (pathPoints[0] - curPos).normalized;
             //Smooth movement
-            desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+            if(pathPoints.Count == 1)
+            {
+                desiredHeading = heading;
+                Vector3.SmoothDamp(transform.position, pathPoints[0], ref desiredHeading, 0.3f, speed);
+            }
+            else
+            {
+                desiredHeading = Vector3.Lerp(heading, speed * (pathPoints[0] - curPos).normalized, 5.0f * Time.deltaTime);
+            }
+
+            
             Debug.DrawLine(curPos, curPos + desiredHeading, Color.cyan);
         }
         else
@@ -122,19 +95,35 @@ public class MeleeAIEnemy : NavAgent
         
     }
 
-    public void AddPursuer(MeleeAIAlly ally)
-    {
-        pursuers.Add(ally);
-    }
-
-    public void RemovePursuer(MeleeAIAlly ally)
-    {
-        pursuers.Remove(ally);
-    }
-
     private void OnDestroy()
     {
         
+    }
+
+    void UpdateNearbyAllies()
+    {
+        nearbyAllies = new List<MeleeAIAlly>();
+        Collider[] collidersInRange = Physics.OverlapSphere(transform.position, 5.0f, 1 << 8);
+        foreach (Collider enemyCollider in collidersInRange)
+        {
+            MeleeAIAlly allyAI = enemyCollider.gameObject.GetComponent<MeleeAIAlly>();
+            nearbyAllies.Add(allyAI);
+        }
+
+
+        Transform closestAgent = playerTrans;
+        float minDistance = Vector3.Distance(closestAgent.position, transform.position);
+        for (int i = 0; i < nearbyAllies.Count; i++)
+        {
+            float dist = Vector3.Distance(nearbyAllies[i].transform.position, transform.position);
+            if (dist < minDistance)
+            {
+                closestAgent = nearbyAllies[i].transform;
+                minDistance = dist;
+            }
+        }
+        target = closestAgent;
+
     }
 
     public void TakeDamage(int damage, Vector3 knockbackDir)
@@ -143,15 +132,12 @@ public class MeleeAIEnemy : NavAgent
         if (healthBar.DecrementHealth(damage) && currentHealth > 0)
         {
             state = AIState.Dying;
-            Debug.Log("DYING " + gameObject.name);
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
-            foreach (MeleeAIAlly friendly in pursuers)
-            {
-                friendly.TargetWasKilled();
-            }
-            pursuers = new List<MeleeAIAlly>();
-            
+            deathEvent.Invoke();
+            CancelInvoke();
+            rb.velocity = Vector3.zero;
+            target = null;
         }
         else
         {
