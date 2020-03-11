@@ -6,7 +6,7 @@ using UnityEngine;
 public class PlayerMovementController : MonoBehaviour
 {
     // FOR DEBUGGING
-    private const bool DEBUG = true;
+    private const bool DEBUG = false;
 
     #region Constants
     private const float HAND_DISTANCE = 1.4f; // Distance of player's hand from player's body
