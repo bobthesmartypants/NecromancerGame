@@ -5,11 +5,17 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
+    // FOR DEBUGGING
+    private const bool DEBUG = false;
+
     #region Constants
     private const float HAND_DISTANCE = 1.4f; // Distance of player's hand from player's body
     private const float HAND_HEIGHT = 1.5f; // Height of player's hand from ground
-    private const float ATTACK_RECHARGE = 1f; // Time it takes for player to recharge its attack
+    private const float ATTACK_COOLDOWN = 1f; // Time it takes for player to recharge its attack
     private const float PLAYER_SPEED = 15.0f; // Player running speed
+    private const int PLAYER_DAMAGE = 1; // Amount of damange that the player can do each attack
+    private const float HITBOX_SIZE = 5f; // Attack hitbox radius
+    private const float HITBOX_HEIGHT = 10f; // Attack hitbox vertical height (need to be set bigger for dealing with big enemies perhaps)
     #endregion
 
     #region Private Variables
@@ -25,6 +31,9 @@ public class PlayerMovementController : MonoBehaviour
 
     // Reference to ResurrectionCircle script
     private ResurrectionCircle resCircle;
+
+    // Reference to HitDetector script
+    private HitDetector hitbox;
 
     // Current horizontal and vertical input
     private float moveHorizontal;
@@ -82,6 +91,12 @@ public class PlayerMovementController : MonoBehaviour
         // Initialize resurrection circle reference
         resCircle = gameObject.GetComponentInChildren<ResurrectionCircle>();
 
+        // Initiaize hit detector reference
+        hitbox = gameObject.GetComponentInChildren<HitDetector>();
+
+        // Initialize hit detector range
+        hitbox.transform.localScale = new Vector3(HITBOX_SIZE, HITBOX_HEIGHT, HITBOX_SIZE);
+
         // Set initial attack state to true
         canAttack = true;
     }
@@ -92,7 +107,10 @@ public class PlayerMovementController : MonoBehaviour
         // If left button clicked and currently can attack
         if (Input.GetMouseButton(0) && canAttack)
         {
-            equippedMagic.Cast(); // Cast the current magic
+            // equippedMagic.Cast(); // Cast the current magic TODO: make this obsolete?
+
+            DoAttack();
+
             AttackAnim.SetTrigger("Attack"); // Do attack animation
             canAttack = false; // Disable attack
             StartCoroutine("RechargeAttack"); // Reenable attack after recharged
@@ -106,11 +124,29 @@ public class PlayerMovementController : MonoBehaviour
         }
 
     }
+
+    private void DoAttack()
+    {
+        if (DEBUG) Debug.Log("Doing attack");
+
+        foreach (Collider other in hitbox.GetColliding())
+        {
+            if (DEBUG) Debug.Log("Found entity in collider");
+            
+            if (other.gameObject.GetComponent<MeleeAIEnemy>())
+            {
+                if (DEBUG) Debug.Log("enemy taking damage");
+                MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
+                
+                enemyAI.TakeDamage(PLAYER_DAMAGE); 
+            }
+        }
+    }
     
     // Sets canAttack to true after ATTACK_RECHARGE seconds
     IEnumerator RechargeAttack()
     {
-        yield return new WaitForSeconds(ATTACK_RECHARGE);
+        yield return new WaitForSeconds(ATTACK_COOLDOWN);
         canAttack = true;
     }
 
@@ -127,6 +163,9 @@ public class PlayerMovementController : MonoBehaviour
 
         // Set sword rotation
         sword.SetRotation(Vector3.SignedAngle(relMousePos, Vector3.right, Vector3.forward));
+
+        // Set hitbox rotation
+        hitbox.SetRotation(Vector3.SignedAngle(relMousePos, Vector3.right, Vector3.forward));
 
         // Calculate movement vector
         velocity = Vector3.zero;

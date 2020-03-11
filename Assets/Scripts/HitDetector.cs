@@ -14,7 +14,13 @@ public class HitDetector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        Debug.Log(TriggerList.Count);
+    }
+
+    // Set rotation of hitbox
+    public void SetRotation(float rot)
+    {
+        transform.eulerAngles = new Vector3(0, rot - 45, 0);
     }
 
     void OnTriggerEnter(Collider other)

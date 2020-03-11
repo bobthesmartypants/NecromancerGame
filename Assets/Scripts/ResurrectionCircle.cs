@@ -5,7 +5,7 @@ using UnityEngine;
 public class ResurrectionCircle : MonoBehaviour
 {
     // FOR DEBUGGING
-    private const bool DEBUG = true;
+    private const bool DEBUG = false;
 
     // Radius around the player where resurrection can happen
     private float RESURRECTION_RADIUS = 10f;
