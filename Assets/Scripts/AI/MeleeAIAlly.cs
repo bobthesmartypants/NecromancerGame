@@ -130,8 +130,9 @@ public class MeleeAIAlly : NavAgent
             gameObject.GetComponent<Collider>().enabled = false;
             deathEvent.Invoke();
             StopCoroutine(nearbyEnemiesCoroutine);
-            rb.velocity = Vector3.zero;
             target = null;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+            rb.velocity = Vector3.zero;
         }
         else
         {
