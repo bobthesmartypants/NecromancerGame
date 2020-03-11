@@ -23,7 +23,7 @@ public class MeleeAIAlly : NavAgent
 
     public UnityEvent deathEvent = new UnityEvent();
     List<MeleeAIEnemy> nearbyEnemies = new List<MeleeAIEnemy>();
-
+    Coroutine nearbyEnemiesCoroutine;
     float nextAttackTime;
 
     HealthBar healthBar;
@@ -45,8 +45,7 @@ public class MeleeAIAlly : NavAgent
         target = master;
 
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
-
-        InvokeRepeating("UpdateNearbyEnemies", 0.0f, 0.1f);
+        nearbyEnemiesCoroutine = StartCoroutine(UpdateNearbyEnemies());
     }
 
     void Update()
@@ -130,7 +129,7 @@ public class MeleeAIAlly : NavAgent
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
             deathEvent.Invoke();
-            CancelInvoke();
+            StopCoroutine(nearbyEnemiesCoroutine);
             rb.velocity = Vector3.zero;
             target = null;
         }
@@ -151,46 +150,47 @@ public class MeleeAIAlly : NavAgent
         
     }
 
-    void UpdateNearbyEnemies()
+    IEnumerator UpdateNearbyEnemies()
     {
-        
-        nearbyEnemies = new List<MeleeAIEnemy>();
-        Collider[] collidersInRange = Physics.OverlapSphere(transform.position, 15.0f, 1 << 9);
-        foreach(Collider enemyCollider in collidersInRange)
+        while (true)
         {
-            MeleeAIEnemy enemyAI = enemyCollider.gameObject.GetComponent<MeleeAIEnemy>();
-            if (!enemyAI.IsDead())
+            nearbyEnemies = new List<MeleeAIEnemy>();
+            Collider[] collidersInRange = Physics.OverlapSphere(transform.position, 15.0f, 1 << 9);
+            foreach (Collider enemyCollider in collidersInRange)
             {
-                nearbyEnemies.Add(enemyAI);
-            }
-        }
-
-
-        if(nearbyEnemies.Count == 0)
-        {
-            state = AIState.Patrolling;
-            target = wanderingTransform;
-        }
-        else
-        {
-            //TODO: make enemies that are already surrounded by allies less desirable
-            Transform closestAgent = nearbyEnemies[0].transform;
-            float minDistance = Vector3.Distance(closestAgent.position, transform.position);
-            for (int i = 1; i < nearbyEnemies.Count; i++)
-            {
-                float dist = Vector3.Distance(nearbyEnemies[i].transform.position, transform.position);
-                if (dist < minDistance)
+                MeleeAIEnemy enemyAI = enemyCollider.gameObject.GetComponent<MeleeAIEnemy>();
+                if (!enemyAI.IsDead())
                 {
-                    closestAgent = nearbyEnemies[i].transform;
-                    minDistance = dist;
+                    nearbyEnemies.Add(enemyAI);
                 }
             }
-            state = AIState.AttackingEnemy;
-            target = closestAgent;
-        }
-        
-    }
 
+
+            if (nearbyEnemies.Count == 0)
+            {
+                state = AIState.Patrolling;
+                target = wanderingTransform;
+            }
+            else
+            {
+                //TODO: make enemies that are already surrounded by allies less desirable
+                Transform closestAgent = nearbyEnemies[0].transform;
+                float minDistance = Vector3.Distance(closestAgent.position, transform.position);
+                for (int i = 1; i < nearbyEnemies.Count; i++)
+                {
+                    float dist = Vector3.Distance(nearbyEnemies[i].transform.position, transform.position);
+                    if (dist < minDistance)
+                    {
+                        closestAgent = nearbyEnemies[i].transform;
+                        minDistance = dist;
+                    }
+                }
+                state = AIState.AttackingEnemy;
+                target = closestAgent;
+            }
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
 
     //This gets called before Update functions.
     private void OnTriggerStay(Collider other)

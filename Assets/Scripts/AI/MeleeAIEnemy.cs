@@ -18,6 +18,7 @@ public class MeleeAIEnemy : NavAgent
     float HIT_STRENGTH = 20.0f;
     public UnityEvent deathEvent = new UnityEvent();
     List<MeleeAIAlly> nearbyAllies = new List<MeleeAIAlly>();
+    Coroutine nearbyAlliesCoroutine;
 
     //How much more the enemies prefer attacking the player over allies
     static float PLAYER_PREFERENCE = 1.5f;
@@ -33,8 +34,7 @@ public class MeleeAIEnemy : NavAgent
         speed = 12.0f;
         state = AIState.Attacking;
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
-
-        //InvokeRepeating("UpdateNearbyAllies", 0.0f, 0.1f);
+        nearbyAlliesCoroutine = StartCoroutine(UpdateNearbyAllies());
 
     }
 
@@ -45,7 +45,6 @@ public class MeleeAIEnemy : NavAgent
         {
             case AIState.Attacking:
                 //Navigating to fight player
-                
                 break;
             case AIState.Dying:
                 //Play dying animation with coroutine maybe
@@ -100,31 +99,37 @@ public class MeleeAIEnemy : NavAgent
         
     }
 
-    void UpdateNearbyAllies()
+    IEnumerator UpdateNearbyAllies()
     {
-        nearbyAllies = new List<MeleeAIAlly>();
-        Collider[] collidersInRange = Physics.OverlapSphere(transform.position, 5.0f, 1 << 8);
-        foreach (Collider enemyCollider in collidersInRange)
+        while (true)
         {
-            MeleeAIAlly allyAI = enemyCollider.gameObject.GetComponent<MeleeAIAlly>();
-            nearbyAllies.Add(allyAI);
-        }
-
-
-        Transform closestAgent = playerTrans;
-        float minDistance = Vector3.Distance(closestAgent.position, transform.position);
-        for (int i = 0; i < nearbyAllies.Count; i++)
-        {
-            float dist = Vector3.Distance(nearbyAllies[i].transform.position, transform.position);
-            if (dist < minDistance)
+            nearbyAllies = new List<MeleeAIAlly>();
+            Collider[] collidersInRange = Physics.OverlapSphere(transform.position, 5.0f, 1 << 8);
+            foreach (Collider enemyCollider in collidersInRange)
             {
-                closestAgent = nearbyAllies[i].transform;
-                minDistance = dist;
+                MeleeAIAlly allyAI = enemyCollider.gameObject.GetComponent<MeleeAIAlly>();
+                nearbyAllies.Add(allyAI);
             }
-        }
-        target = closestAgent;
 
+
+            Transform closestAgent = playerTrans;
+            float minDistance = Vector3.Distance(closestAgent.position, transform.position);
+            for (int i = 0; i < nearbyAllies.Count; i++)
+            {
+                float dist = Vector3.Distance(nearbyAllies[i].transform.position, transform.position);
+                if (dist < minDistance)
+                {
+                    closestAgent = nearbyAllies[i].transform;
+                    minDistance = dist;
+                }
+            }
+            target = closestAgent;
+
+            yield return new WaitForSeconds(0.1f);
+        }
+        
     }
+
 
     public void TakeDamage(int damage, Vector3 knockbackDir)
     {
@@ -135,7 +140,7 @@ public class MeleeAIEnemy : NavAgent
             //Disable collider to avoid future triggers
             gameObject.GetComponent<Collider>().enabled = false;
             deathEvent.Invoke();
-            CancelInvoke();
+            StopCoroutine(nearbyAlliesCoroutine);
             rb.velocity = Vector3.zero;
             target = null;
         }
