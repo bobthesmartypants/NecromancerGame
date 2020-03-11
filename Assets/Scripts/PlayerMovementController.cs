@@ -13,6 +13,7 @@ public class PlayerMovementController : MonoBehaviour
     private const float HAND_HEIGHT = 1.5f; // Height of player's hand from ground
     private const float ATTACK_RECHARGE = 1f; // Time it takes for player to recharge its attack
     private const float PLAYER_SPEED = 15.0f; // Player running speed
+    private const int PLAYER_DAMAGE = 1; // Amount of damange that the player can do each attack
     private const float HITBOX_SIZE = 5f; // Attack hitbox radius
     private const float HITBOX_HEIGHT = 10f; // Attack hitbox vertical height (need to be set bigger for dealing with big enemies perhaps)
     #endregion
@@ -137,7 +138,7 @@ public class PlayerMovementController : MonoBehaviour
                 if (DEBUG) Debug.Log("enemy taking damage");
                 MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
                 
-                enemyAI.TakeDamage(1); 
+                enemyAI.TakeDamage(PLAYER_DAMAGE); 
             }
         }
     }
