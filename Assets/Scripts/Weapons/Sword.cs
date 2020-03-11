@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Sword : Melee
 {
+
     // Start is called before the first frame update
     void Start()
     {
@@ -16,6 +17,11 @@ public class Sword : Melee
         
     }
 
+    public void SetRotation(float rot)
+    {
+        transform.eulerAngles = new Vector3(90, rot, 0);
+    }
+
     public override void Swing()
     {
         //Enable hurtBox to cause damage
@@ -26,6 +32,7 @@ public class Sword : Melee
 
     IEnumerator AttackCoroutine()
     {
+
         //Wait for animation to finish
 
         yield return null;
