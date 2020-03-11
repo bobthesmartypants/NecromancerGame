@@ -863,6 +863,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: zombie (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5837017915548248079, guid: 63205d095d3ba544b90519c07c84cbcb,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 63205d095d3ba544b90519c07c84cbcb, type: 3}
 --- !u!114 &943451374 stripped
@@ -1268,7 +1273,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1654307592}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bfacbe8df26d19b4ead49b1bf820326e, type: 3}
   m_Name: 
@@ -1441,6 +1446,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: zombie
+      objectReference: {fileID: 0}
+    - target: {fileID: 5837017915548248079, guid: 63205d095d3ba544b90519c07c84cbcb,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 63205d095d3ba544b90519c07c84cbcb, type: 3}
