@@ -16,7 +16,7 @@ public class MeleeAIEnemy : NavAgent
 
     //How much more the enemies prefer attacking the player over allies
     const float PLAYER_PREFERENCE = 1.5f;
-    public const float DESPAWN_TIME = 5.0f; //The time it takes for an enemy to despawn after it dies 
+    public const float DESPAWN_TIME = 8.0f; //The time it takes for an enemy to despawn after it dies 
     const float ATTACK_RADIUS = 30.0f;
     const float HIT_STRENGTH = 20.0f;
 

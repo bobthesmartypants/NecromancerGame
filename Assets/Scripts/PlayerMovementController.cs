@@ -45,6 +45,7 @@ public class PlayerMovementController : MonoBehaviour
     // Reference to transform of Hand GameObject
     private Transform hand;
 
+    private HealthBar healthBar;
     #endregion
 
     // Note sure if this is still useful soon
@@ -137,7 +138,16 @@ public class PlayerMovementController : MonoBehaviour
             }
         }
     }
-    
+
+    public void TakeDamage(int damage)
+    {
+        int currentHealth = healthBar.GetCurrentHealth();
+        if (healthBar.DecrementHealth(damage) && currentHealth > 0)
+        {
+            Debug.Log("Player is kil");
+        }
+    }
+
     // Sets canAttack to true after ATTACK_RECHARGE seconds
     IEnumerator RechargeAttack()
     {
