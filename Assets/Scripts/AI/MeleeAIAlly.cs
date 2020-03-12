@@ -28,6 +28,8 @@ public class MeleeAIAlly : NavAgent
 
     HealthBar healthBar;
 
+    Animator animator;
+
     // Start is called before the first frame update
     new void Start()
     {
@@ -46,6 +48,8 @@ public class MeleeAIAlly : NavAgent
 
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
         nearbyEnemiesCoroutine = StartCoroutine(UpdateNearbyEnemies());
+
+        animator = GetComponentInChildren<Animator>();
     }
 
     void Update()
@@ -91,6 +95,12 @@ public class MeleeAIAlly : NavAgent
             case AIState.Despawning:
                 break;
         }
+
+        //Set animator values
+        Vector3 movement = rb.velocity;
+        animator.SetFloat("movement", movement.magnitude);
+        animator.SetFloat("facingY", movement.z);
+        animator.SetFloat("facingX", movement.x);
     }
 
     public override void MoveAgent(Vector3 heading)
