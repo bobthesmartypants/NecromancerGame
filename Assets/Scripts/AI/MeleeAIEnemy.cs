@@ -24,6 +24,7 @@ public class MeleeAIEnemy : NavAgent
     List<MeleeAIAlly> nearbyAllies = new List<MeleeAIAlly>();
     Coroutine nearbyAlliesCoroutine;
 
+    Animator animator;
 
 
     HealthBar healthBar;
@@ -39,6 +40,7 @@ public class MeleeAIEnemy : NavAgent
         healthBar = transform.Find("HealthBarCanvas").gameObject.GetComponent<HealthBar>();
         nearbyAlliesCoroutine = StartCoroutine(UpdateNearbyAllies());
 
+        animator = GetComponentInChildren<Animator>();
     }
 
     void Update()
@@ -59,6 +61,12 @@ public class MeleeAIEnemy : NavAgent
                 StartCoroutine(Despawn());
                 break;
         }
+
+        //Set animator values
+        Vector3 movement = rb.velocity;
+        animator.SetFloat("movement", movement.magnitude);
+        animator.SetFloat("facingY", movement.z);
+        animator.SetFloat("facingX", movement.x);
     }
 
     public bool IsDead()
@@ -146,6 +154,7 @@ public class MeleeAIEnemy : NavAgent
             target = null;
             rb.constraints = RigidbodyConstraints.FreezeAll;
             rb.velocity = Vector3.zero;
+            animator.SetTrigger("died");
         }
         else
         {
