@@ -95,7 +95,7 @@ public class NavAgent : MonoBehaviour
         foreach (Collider enemyCollider in collidersInRange)
         {
             NavAgent navAgent = enemyCollider.gameObject.GetComponent<NavAgent>();
-            if (navAgent != this)
+            if (navAgent != this && navAgent != null)
             {
                 nearbyNavAgents.Add(navAgent);
             }

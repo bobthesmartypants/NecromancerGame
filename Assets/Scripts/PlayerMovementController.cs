@@ -134,6 +134,7 @@ public class PlayerMovementController : MonoBehaviour
                 MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
 
                 Vector3 knockbackDir = (enemyAI.transform.position - this.transform.position).normalized;
+                Debug.Log(knockbackDir.y);
                 enemyAI.TakeDamage(PLAYER_DAMAGE, HIT_STRENGTH * knockbackDir); 
             }
         }

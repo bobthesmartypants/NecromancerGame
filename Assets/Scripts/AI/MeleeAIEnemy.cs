@@ -118,7 +118,11 @@ public class MeleeAIEnemy : NavAgent
             foreach (Collider enemyCollider in collidersInRange)
             {
                 MeleeAIAlly allyAI = enemyCollider.gameObject.GetComponent<MeleeAIAlly>();
-                nearbyAllies.Add(allyAI);
+                if (allyAI)
+                {
+                    nearbyAllies.Add(allyAI);
+                }
+                
             }
 
 
@@ -179,7 +183,8 @@ public class MeleeAIEnemy : NavAgent
             MeleeAIAlly allyAI = other.gameObject.GetComponent<MeleeAIAlly>();
             nextAttackTime = Time.time + Random.Range(0.5f, 1.0f);
             //nextAttackTime = Time.time + 0.5f;
-            Vector3 knockbackDir = (allyAI.transform.position - this.transform.position).normalized;
+            Vector3 temp = allyAI.transform.position - this.transform.position;
+            Vector3 knockbackDir = (new Vector3(temp.x, 0.0f, temp.z)).normalized;
             allyAI.TakeDamage(1, HIT_STRENGTH * knockbackDir);
         }
     }
