@@ -16,6 +16,7 @@ public class PlayerMovementController : MonoBehaviour
     private const int PLAYER_DAMAGE = 1; // Amount of damange that the player can do each attack
     private const float HITBOX_SIZE = 5f; // Attack hitbox radius
     private const float HITBOX_HEIGHT = 10f; // Attack hitbox vertical height (need to be set bigger for dealing with big enemies perhaps)
+    private const float HIT_STRENGTH = 20.0f;
     #endregion
 
     #region Private Variables
@@ -30,7 +31,7 @@ public class PlayerMovementController : MonoBehaviour
     private bool canAttack;
 
     // Reference to ResurrectionCircle script
-    private ResurrectionCircle resCircle;
+    private Resurrector ressurector;
 
     // Reference to HitDetector script
     private HitDetector hitbox;
@@ -44,6 +45,7 @@ public class PlayerMovementController : MonoBehaviour
     // Reference to transform of Hand GameObject
     private Transform hand;
 
+    private HealthBar healthBar;
     #endregion
 
     // Note sure if this is still useful soon
@@ -89,7 +91,7 @@ public class PlayerMovementController : MonoBehaviour
         AttackAnim = sword.GetComponent<Animator>();
 
         // Initialize resurrection circle reference
-        resCircle = gameObject.GetComponentInChildren<ResurrectionCircle>();
+        ressurector = gameObject.GetComponentInChildren<Resurrector>();
 
         // Initiaize hit detector reference
         hitbox = gameObject.GetComponentInChildren<HitDetector>();
@@ -116,13 +118,6 @@ public class PlayerMovementController : MonoBehaviour
             StartCoroutine("RechargeAttack"); // Reenable attack after recharged
         }
 
-        // If right mouse button clicked
-        if (Input.GetMouseButton(1)) 
-        {
-            // Resurrect all enemies within the resurrection circle
-            resCircle.ResurrectEnemies(transform);
-        }
-
     }
 
     private void DoAttack()
@@ -137,12 +132,23 @@ public class PlayerMovementController : MonoBehaviour
             {
                 if (DEBUG) Debug.Log("enemy taking damage");
                 MeleeAIEnemy enemyAI = other.gameObject.GetComponent<MeleeAIEnemy>();
-                
-                enemyAI.TakeDamage(PLAYER_DAMAGE); 
+
+                Vector3 knockbackDir = (enemyAI.transform.position - this.transform.position).normalized;
+                Debug.Log(knockbackDir.y);
+                enemyAI.TakeDamage(PLAYER_DAMAGE, HIT_STRENGTH * knockbackDir); 
             }
         }
     }
-    
+
+    public void TakeDamage(int damage)
+    {
+        int currentHealth = healthBar.GetCurrentHealth();
+        if (healthBar.DecrementHealth(damage) && currentHealth > 0)
+        {
+            Debug.Log("Player is kil");
+        }
+    }
+
     // Sets canAttack to true after ATTACK_RECHARGE seconds
     IEnumerator RechargeAttack()
     {
