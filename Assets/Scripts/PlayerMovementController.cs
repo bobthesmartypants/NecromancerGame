@@ -11,7 +11,7 @@ public class PlayerMovementController : MonoBehaviour
     #region Constants
     private const float HAND_DISTANCE = 1.4f; // Distance of player's hand from player's body
     private const float HAND_HEIGHT = 1.5f; // Height of player's hand from ground
-    private const float ATTACK_COOLDOWN = 1f; // Time it takes for player to recharge its attack
+    private const float ATTACK_COOLDOWN = 0.15f; // Time it takes for player to recharge its attack
     private const float PLAYER_SPEED = 15.0f; // Player running speed
     private const int PLAYER_DAMAGE = 1; // Amount of damange that the player can do each attack
     private const float HITBOX_SIZE = 5f; // Attack hitbox radius
